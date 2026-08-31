@@ -1,0 +1,1 @@
+# Solidaris-1.0
