@@ -1,0 +1,2335 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SOLIDARIS — Chrome-only prototype</title>
+    <style>
+      :root {
+        --bg: #f6f4ef;
+        --panel: #ffffff;
+        --panel-alt: #f0ece4;
+        --ink: #20261f;
+        --muted: #6b6250;
+        --line: #dad4c4;
+        --green: #2f6f5e;
+        --green-dark: #26594b;
+        --gold: #b0782e;
+        --purple: #5b4c8a;
+        --red: #7a3b2e;
+        --shadow: rgba(32, 38, 31, 0.08);
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: rgba(246, 244, 239, 0.95);
+        border-bottom: 1px solid var(--line);
+        backdrop-filter: blur(8px);
+      }
+
+      .topbar-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 18px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .brand-wrap {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .brand {
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+
+      .brand-sub {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: -2px;
+      }
+
+      .user-badge {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .avatar-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--panel);
+        border: 1px solid #e4dfd0;
+        border-radius: 999px;
+        padding: 7px 12px 7px 8px;
+        box-shadow: 0 2px 10px rgba(32, 38, 31, 0.06);
+      }
+
+      .avatar-circle {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--green);
+        color: white;
+        font-weight: 700;
+        font-size: 11px;
+      }
+
+      .avatar-text {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.2;
+      }
+
+      .avatar-name {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--ink);
+      }
+
+      .avatar-role {
+        font-size: 10px;
+        color: var(--muted);
+        text-transform: capitalize;
+      }
+
+      .nav-menu {
+        position: relative;
+      }
+
+      .menu-panel {
+        position: absolute;
+        right: 0;
+        margin-top: 8px;
+        min-width: 210px;
+        background: white;
+        border: 1px solid #e4dfd0;
+        border-radius: 12px;
+        box-shadow: 0 16px 28px rgba(32, 38, 31, 0.08);
+        overflow: hidden;
+      }
+
+      .menu-action {
+        display: block;
+        width: 100%;
+        border: none;
+        background: transparent;
+        text-align: left;
+        padding: 10px 12px;
+        font-size: 12px;
+        color: var(--ink);
+        cursor: pointer;
+      }
+
+      .menu-action:hover {
+        background: #f9f6f1;
+      }
+
+      .menu-action.danger {
+        color: var(--red);
+      }
+
+      .save-indicator {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .save-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--green);
+        opacity: 0.75;
+      }
+
+      .page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 28px 24px 80px;
+      }
+
+      .view {
+        display: none;
+      }
+
+      .view.active {
+        display: block;
+      }
+
+      h1, h2, h3 {
+        margin: 0 0 8px;
+        font-weight: 700;
+      }
+
+      .list-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 28px;
+      }
+
+      .list-header h1 {
+        font-size: 28px;
+        line-height: 1.2;
+      }
+
+      .list-header p {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        max-width: 560px;
+      }
+
+      .btn {
+        border: none;
+        border-radius: 8px;
+        padding: 10px 16px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        transition: transform 0.2s ease, background 0.2s ease;
+      }
+
+      .btn:hover { transform: translateY(-1px); }
+
+      .btn.primary {
+        background: var(--green);
+        color: white;
+      }
+
+      .btn.primary:hover { background: var(--green-dark); }
+
+      .programmes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+      }
+
+      .programme-card {
+        background: var(--panel);
+        border: 1px solid #e4dfd0;
+        border-radius: 14px;
+        padding: 20px;
+        box-shadow: 0 2px 10px var(--shadow);
+        text-align: left;
+        cursor: pointer;
+      }
+
+      .programme-card .top {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .programme-card .name {
+        font-size: 15px;
+        font-weight: 700;
+      }
+
+      .programme-card .meta {
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .progress {
+        margin-top: 18px;
+        height: 8px;
+        background: #efeae0;
+        border-radius: 999px;
+        overflow: hidden;
+      }
+
+      .progress > span {
+        display: block;
+        height: 100%;
+        background: var(--green);
+        border-radius: inherit;
+      }
+
+      .count {
+        margin-top: 8px;
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      .empty-state {
+        padding: 56px 20px;
+        border: 1px dashed #cfc7b2;
+        border-radius: 12px;
+        text-align: center;
+        background: rgba(255,255,255,0.2);
+      }
+
+      .context-box,
+      .assessment-box,
+      .profile-box,
+      .panel {
+        background: var(--panel);
+        border: 1px solid #e4dfd0;
+        border-radius: 16px;
+        padding: 24px;
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+        margin-bottom: 18px;
+      }
+
+      .auth-shell {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 72vh;
+      }
+
+      .auth-card {
+        width: min(520px, 100%);
+        background: var(--panel);
+        border: 1px solid #e4dfd0;
+        border-radius: 18px;
+        padding: 28px;
+        box-shadow: 0 10px 32px rgba(32, 38, 31, 0.08);
+      }
+
+      .auth-card h1 {
+        font-size: 28px;
+        margin-bottom: 12px;
+      }
+
+      .auth-card p {
+        margin: 0 0 18px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .auth-grid {
+        display: grid;
+        gap: 14px;
+      }
+
+      .role-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 11px;
+        color: var(--muted);
+        border: 1px solid var(--line);
+        background: #f7f3eb;
+        padding: 6px 10px;
+        border-radius: 999px;
+        margin-bottom: 12px;
+      }
+
+      .user-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #f6f2ea;
+        border: 1px solid #e4dfd0;
+        border-radius: 999px;
+        padding: 7px 12px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .score-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 42px;
+        padding: 5px 8px;
+        border-radius: 999px;
+        background: #edf5f2;
+        border: 1px solid #d2e2dc;
+        color: var(--green);
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+
+      .reviewer-strip {
+        display: grid;
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .reviewer-item {
+        background: #f9f6f1;
+        border: 1px solid #ebe2d1;
+        border-radius: 10px;
+        padding: 10px 12px;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 12px;
+      }
+
+      .summary-card {
+        background: var(--panel);
+        border: 1px solid #e4dfd0;
+        border-radius: 12px;
+        padding: 14px 16px;
+      }
+
+      .summary-card .label {
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 8px;
+      }
+
+      .summary-card .value {
+        font-size: 22px;
+        font-weight: 700;
+      }
+
+      .report-grid {
+        display: grid;
+        grid-template-columns: 1.3fr 1fr;
+        gap: 18px;
+        margin-top: 18px;
+      }
+
+      .mini-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 10px;
+      }
+
+      .mini-list li {
+        background: #f9f6f1;
+        border: 1px solid #efeae0;
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 12px;
+        color: #3a362c;
+      }
+
+      .context-box {
+        max-width: 720px;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .field {
+        display: block;
+      }
+
+      .field label {
+        display: block;
+        font-size: 11.5px;
+        font-weight: 600;
+        color: var(--muted);
+        margin-bottom: 7px;
+      }
+
+      .field input,
+      .field textarea,
+      .field select {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 13.5px;
+        color: var(--ink);
+        background: white;
+        outline: none;
+      }
+
+      .field textarea {
+        min-height: 74px;
+        resize: vertical;
+      }
+
+      .field input:focus,
+      .field textarea:focus,
+      .field select:focus {
+        border-color: var(--green);
+        box-shadow: 0 0 0 1px rgba(47,111,94,0.2);
+      }
+
+      .next-row {
+        margin-top: 24px;
+        display: flex;
+        justify-content: flex-start;
+      }
+
+      .assessment-layout {
+        display: grid;
+        grid-template-columns: 220px minmax(0, 1fr);
+        gap: 28px;
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 80px;
+        align-self: start;
+      }
+
+      .triad-block {
+        margin-bottom: 20px;
+      }
+
+      .triad-label {
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
+
+      .domain-link {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-align: left;
+        border: none;
+        background: transparent;
+        color: #4a4438;
+        border-radius: 8px;
+        padding: 8px 10px;
+        margin-bottom: 4px;
+        cursor: pointer;
+        font-size: 12.5px;
+      }
+
+      .domain-link.active {
+        background: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        font-weight: 600;
+      }
+
+      .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        display: inline-block;
+        background: #d8d2c0;
+      }
+
+      .dot.done { background: var(--green); }
+
+      .integrity-link {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        text-align: left;
+        background: transparent;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 10px;
+        cursor: pointer;
+        color: #4a4438;
+        font-size: 12.5px;
+      }
+
+      .integrity-link.active {
+        background: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        font-weight: 600;
+      }
+
+      .domain-form {
+        max-width: 700px;
+      }
+
+      .eyebrow {
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+      }
+
+      .rating-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+      }
+
+      .range-row {
+        margin: 0 0 18px;
+      }
+
+      input[type="range"] {
+        width: 100%;
+        accent-color: var(--green);
+      }
+
+      .range-scale {
+        display: flex;
+        justify-content: space-between;
+        color: #b0aa95;
+        font-size: 10px;
+      }
+
+      .field-group {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 20px;
+      }
+
+      .stack {
+        display: grid;
+        gap: 18px;
+      }
+
+      .button-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 26px;
+      }
+
+      .btn.ghost {
+        background: transparent;
+        color: var(--muted);
+      }
+
+      .btn.disabled {
+        opacity: 0.38;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .profile-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      .profile-header p {
+        margin: 6px 0 0;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .link-like {
+        background: none;
+        border: none;
+        color: var(--green);
+        font-size: 12.5px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .profile-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 260px;
+        gap: 24px;
+      }
+
+      .chart-wrap {
+        background: var(--panel);
+        border: 1px solid #e4dfd0;
+        border-radius: 14px;
+        padding: 18px;
+      }
+
+      .chart-wrap .label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--muted);
+        margin-bottom: 10px;
+      }
+
+      .triad-boxes {
+        display: grid;
+        gap: 12px;
+      }
+
+      .triad-box {
+        background: var(--panel);
+        border: 1px solid #e4dfd0;
+        border-radius: 12px;
+        padding: 14px 16px;
+      }
+
+      .triad-box .kicker {
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      }
+
+      .triad-box .sub {
+        color: var(--muted);
+        font-size: 11px;
+        margin-bottom: 10px;
+      }
+
+      .triad-box .avg {
+        font-size: 22px;
+        font-weight: 700;
+      }
+
+      .risk-card {
+        background: var(--panel);
+        border: 1px solid #e4dfd0;
+        border-radius: 12px;
+        padding: 14px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .risk-pill {
+        padding: 4px 10px;
+        border-radius: 999px;
+        color: white;
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .evidence-grid {
+        margin-top: 20px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .evidence-card {
+        border: 1px solid #efeae0;
+        border-radius: 10px;
+        padding: 12px;
+      }
+
+      .evidence-card .title {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .evidence-card .text {
+        font-size: 12px;
+        line-height: 1.45;
+        margin-top: 8px;
+        color: #3a362c;
+      }
+
+      .muted-note {
+        color: var(--muted);
+        font-style: italic;
+      }
+
+      svg {
+        width: 100%;
+        height: 320px;
+        display: block;
+      }
+
+      @media (max-width: 860px) {
+        .assessment-layout,
+        .profile-layout,
+        .form-grid,
+        .field-group,
+        .evidence-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          position: static;
+        }
+
+        .list-header {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand-wrap">
+          <div>
+            <div class="brand">SOLIDARIS</div>
+            <div class="brand-sub">Solidarity Profiling — demo prototype</div>
+          </div>
+        </div>
+        <div id="userBadge" class="user-badge"></div>
+        <div class="save-indicator">
+          <span class="save-dot"></span>
+          <span>Saved</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="page">
+      <section id="authView" class="view active">
+        <div class="auth-shell">
+          <div class="auth-card">
+            <h1>SOLIDARIS access</h1>
+            <p>Sign in to continue or create a user account to begin reviewing or managing the assessment.</p>
+            <div class="auth-grid">
+              <div class="field">
+                <label>Full name</label>
+                <input id="signupFullName" placeholder="e.g. Amina Kibet" />
+              </div>
+              <div class="field">
+                <label>Email address</label>
+                <input id="signupEmail" type="email" placeholder="name@organization.ca" />
+              </div>
+              <div class="field">
+                <label>Username</label>
+                <input id="loginUsername" placeholder="e.g. owner1 or reviewer1" />
+              </div>
+              <div class="field">
+                <label>Password</label>
+                <input id="loginPassword" type="password" placeholder="Enter password" />
+              </div>
+              <div class="field">
+                <label>Role</label>
+                <select id="loginRole">
+                  <option value="reviewer">Reviewer</option>
+                  <option value="owner">Project owner</option>
+                  <option value="superadmin">Super admin</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Project ID (reviewers only)</label>
+                <input id="signupProjectId" placeholder="Enter project ID to join an assigned project" />
+              </div>
+              <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top: 4px;">
+                <button class="btn primary" id="loginBtn">Sign in</button>
+                <button class="btn ghost" id="createAccountBtn">Create account</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="listView" class="view">
+        <div class="list-header">
+          <div>
+            <h1>Programme assessments</h1>
+            <p>Each assessment builds an evidence-based solidarity profile across nine domains - not a single score.</p>
+          </div>
+          <button class="btn primary" id="newAssessmentBtn">New assessment</button>
+        </div>
+
+        <div id="emptyState" class="empty-state">
+          <p style="margin: 0; color: var(--muted); font-size: 14px;">No programmes assessed yet.</p>
+          <button class="btn primary" id="newAssessmentBtnSecondary" style="margin-top: 18px;">Start your first assessment</button>
+        </div>
+      </section>
+
+      <section id="contextView" class="view">
+        <div class="context-box">
+          <h1 style="font-size: 24px; margin-bottom: 8px;">Programme context</h1>
+          <p style="margin: 0 0 20px; color: var(--muted); font-size: 13px;">This grounds the assessment. It's not scored, but shapes how evidence is read.</p>
+          <div class="form-grid">
+            <div class="field">
+              <label>Programme name</label>
+              <input id="programmeName" placeholder="e.g. PEPFAR Nigeria" />
+            </div>
+            <div class="field">
+              <label>Funder / organisation</label>
+              <input id="programmeFunder" placeholder="e.g. USG" />
+            </div>
+            <div class="field">
+              <label>Country / region</label>
+              <input id="programmeCountry" placeholder="e.g. Nigeria" />
+            </div>
+            <div class="field">
+              <label>Sector</label>
+              <input id="programmeSector" placeholder="e.g. Health — HIV programme" />
+            </div>
+            <div class="field" style="grid-column: 1 / -1; max-width: 320px;">
+              <label>Assessor name</label>
+              <input id="programmeAssessor" placeholder="Your name" />
+            </div>
+          </div>
+
+          <div id="projectAccessPanel" class="panel" style="margin-top: 20px; background: #f9f6f1; border-color: #e4dfd0; display: none;">
+            <div class="eyebrow" style="color: var(--green); margin-bottom: 8px;">Project access</div>
+            <div class="field" style="margin-bottom: 14px;">
+              <label>Project ID</label>
+              <input id="activeProjectCode" readonly />
+            </div>
+            <div class="field">
+              <label>Assign reviewers by email</label>
+              <input id="reviewerInviteInput" placeholder="name@org.ca, second@org.ca" />
+            </div>
+            <div class="button-bar" style="margin-top: 14px;">
+              <div id="reviewerAccessSummary" style="font-size: 12px; color: var(--muted);">No reviewers assigned yet.</div>
+              <button class="btn primary" id="inviteReviewerBtn" type="button">Send invites</button>
+            </div>
+            <div class="field" style="margin-top: 16px;">
+              <label>Assign cross-reviewer</label>
+              <select id="crossReviewerSelect">
+                <option value="">Select cross-reviewer</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="next-row">
+            <button class="btn primary" id="beginAssessmentBtn">Begin domain assessment</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="assessView" class="view">
+        <div class="assessment-layout">
+          <aside class="sidebar panel" id="sidebar"></aside>
+          <div id="domainPanel" class="domain-form panel"></div>
+        </div>
+      </section>
+
+      <section id="profileView" class="view">
+        <div class="profile-box">
+          <div class="profile-header">
+            <div>
+              <h1 style="font-size: 24px;">Solidarity profile</h1>
+              <p id="profileSummary">Untitled programme</p>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center;">
+              <button class="link-like" id="openReportBtn">View report</button>
+              <button class="link-like" id="editAssessmentBtn">Edit assessment</button>
+            </div>
+          </div>
+
+          <div class="profile-layout">
+            <div class="chart-wrap">
+              <div class="label">Nine-domain profile — not a single score by design</div>
+              <svg id="radarSvg" viewBox="0 0 420 320" preserveAspectRatio="xMidYMid meet"></svg>
+            </div>
+            <div class="triad-boxes" id="triadSummary"></div>
+          </div>
+
+          <div class="evidence-grid" id="evidenceGrid"></div>
+        </div>
+      </section>
+
+      <section id="reportView" class="view">
+        <div class="profile-box">
+          <div class="profile-header">
+            <div>
+              <h1 style="font-size: 24px;">Assessment report</h1>
+              <p id="reportSummary">Untitled programme</p>
+            </div>
+            <button class="link-like" id="backToProfileBtn">Back to profile</button>
+          </div>
+
+          <div class="summary-grid" id="summaryGrid"></div>
+
+          <div class="report-grid">
+            <div class="panel">
+              <h3>Evidence matrix</h3>
+              <ul class="mini-list" id="reportEvidenceList"></ul>
+            </div>
+            <div class="panel">
+              <h3>Risk register</h3>
+              <ul class="mini-list" id="reportRiskList"></ul>
+            </div>
+          </div>
+
+          <div class="panel" style="margin-top: 18px;">
+            <h3>Recommended follow-up actions</h3>
+            <ul class="mini-list" id="reportActionList"></ul>
+          </div>
+
+          <div id="crossReviewerSynthesisPanel"></div>
+          <div id="finalReportHandoffPanel"></div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const TRIADS = [
+        {
+          key: 'what',
+          label: 'WHAT',
+          sub: 'Orientation',
+          color: '#2F6F5E',
+          domains: [
+            { id: 'd1', name: 'Equity & Justice', prompts: ['To what extent does the programme prioritise the needs of marginalised or underserved populations?', 'Are resources distributed based on need rather than political or economic factors?', 'Does the programme address root causes of health inequities, not just symptoms?'] },
+            { id: 'd2', name: 'Common Good Orientation', prompts: ['Does the programme prioritise collective health outcomes over individual or organisational gains?', 'Are public goods (knowledge, technologies) shared openly rather than restricted?', 'Is the programme designed to strengthen public health systems rather than parallel structures?'] },
+            { id: 'd3', name: 'Mutual Responsibility', prompts: ['Are responsibilities and accountabilities clearly shared between all parties?', 'Do all actors (funders, implementers, communities) bear appropriate shares of risk?', 'Is there evidence of reciprocal obligations rather than one-way dependency?'] },
+          ],
+        },
+        {
+          key: 'how',
+          label: 'HOW',
+          sub: 'Process',
+          color: '#B0782E',
+          domains: [
+            { id: 'd4', name: 'Power Transformation', prompts: ['To what extent are decision-making powers shared with local actors?', 'Who sets priorities and controls funding allocation?', 'Are there mechanisms to shift authority over time to local ownership?'] },
+            { id: 'd5', name: 'Inclusive Participation', prompts: ['Are affected communities meaningfully involved in programme design?', 'Do marginalised groups have genuine voice in decision-making (not just consultation)?', 'Are participation mechanisms accessible and culturally appropriate?'] },
+            { id: 'd6', name: 'Transparency & Accountability', prompts: ['Is information about funding, decisions, and outcomes openly accessible?', 'Are there mechanisms for communities to hold implementing actors accountable?', 'Is there honest reporting of failures and challenges, not just successes?'] },
+          ],
+        },
+        {
+          key: 'end',
+          label: 'TO WHAT END',
+          sub: 'Outcomes',
+          color: '#5B4C8A',
+          domains: [
+            { id: 'd7', name: 'Sustainability & Sovereignty', prompts: ['Does the programme strengthen local health system capacity for long-term sustainability?', 'Is there a clear transition plan toward local ownership and control?', 'Does the programme respect and build upon national health priorities?'] },
+            { id: 'd8', name: 'Relational Trust', prompts: ['Is there evidence of genuine partnership rather than donor-recipient dynamics?', 'Are relationships characterised by mutual respect and learning?', 'Has trust been built through consistent, reliable engagement over time?'] },
+            { id: 'd9', name: 'Transformative Impact', prompts: ['Does the programme contribute to systemic change beyond immediate health outcomes?', 'Is there evidence of shifting norms, policies, or structures toward greater equity?', 'Does the programme challenge rather than reinforce existing inequities?'] },
+          ],
+        },
+      ];
+
+      const ALL_DOMAINS = TRIADS.flatMap((triad) => triad.domains.map((d) => ({ ...d, triadColor: triad.color, triadLabel: triad.label })));
+      const DEFAULT_USERS = [
+        { id: 'admin', username: 'demo test', name: 'Demo Admin', fullName: 'Demo Admin', email: 'admin@solidaris.demo', role: 'superadmin', password: 'demo test' },
+        { id: 'reviewer1', username: 'demo test', name: 'Reviewer 1', fullName: 'Reviewer 1', email: 'reviewer1@solidaris.demo', role: 'reviewer', password: 'demo test' },
+        { id: 'reviewer2', username: 'demo test', name: 'Reviewer 2', fullName: 'Reviewer 2', email: 'reviewer2@solidaris.demo', role: 'reviewer', password: 'demo test' },
+        { id: 'reviewer3', username: 'demo test', name: 'Reviewer 3', fullName: 'Reviewer 3', email: 'reviewer3@solidaris.demo', role: 'reviewer', password: 'demo test' },
+      ];
+      const RATING_LABELS = { 0: 'Not scored', 1: 'Emerging', 2: 'Partial', 3: 'Developing', 4: 'Consistent', 5: 'Exemplary' };
+      const EVIDENCE_TYPES = ['Interviews', 'Observations', 'Documents', 'Financial records', 'Mixed'];
+      const CONFIDENCE_LEVELS = ['Low', 'Medium', 'High'];
+
+      function normalizeEmail(value) {
+        return String(value || '').trim().toLowerCase();
+      }
+
+      function canAccessProject(user, programme) {
+        if (!user || !programme) return false;
+        if (user.role === 'superadmin') return true;
+        if (user.role === 'owner') return programme.owner === user.id;
+        if (user.role === 'reviewer') {
+          const reviewerIds = Array.isArray(programme.reviewerIds) ? programme.reviewerIds : [];
+          return reviewerIds.includes(user.id) || programme.crossReviewerId === user.id;
+        }
+        return false;
+      }
+
+      function getVisibleProjectsForUser(user) {
+        if (!user) return [];
+        return state.programmes.filter((programme) => canAccessProject(user, programme));
+      }
+
+      function validateDomainQuestions(domainId, activeProgramme) {
+        const domain = ALL_DOMAINS.find((entry) => entry.id === domainId);
+        if (!domain) return 'Domain not found.';
+
+        const data = activeProgramme.assessment.domains[domainId];
+        if (!data) return 'Assessment data missing for this domain.';
+
+        if (!Number(data.rating) || Number(data.rating) <= 0) {
+          return `${domain.name}: please assign a score before continuing.`;
+        }
+
+        const promptCount = getDomainPrompts(activeProgramme, domainId).length;
+        for (let index = 0; index < promptCount; index += 1) {
+          const value = String(data.responses?.[index] || '').trim();
+          if (value.length < 50 || value.length > 250) {
+            return `${domain.name}: every response must be between 50 and 250 characters. Question ${index + 1} is outside that range.`;
+          }
+        }
+
+        const evidenceSummary = String(data.evidenceSummary || '').trim();
+        if (evidenceSummary.length < 50 || evidenceSummary.length > 250) {
+          return `${domain.name}: the evidence summary must be between 50 and 250 characters.`;
+        }
+
+        if (!data.evidenceType) {
+          return `${domain.name}: please select an evidence type.`;
+        }
+
+        if (!data.confidence) {
+          return `${domain.name}: please select a confidence level.`;
+        }
+
+        return '';
+      }
+
+      function emptyAssessment() {
+        const domains = {};
+        ALL_DOMAINS.forEach((d) => {
+          domains[d.id] = {
+            rating: 0,
+            responses: d.prompts.map(() => ''),
+            evidenceType: '',
+            evidenceSummary: '',
+            confidence: '',
+          };
+        });
+        return {
+          domains,
+          integrity: {
+            alignmentContradiction: '',
+            burdenBearer: '',
+            voiceReality: '',
+            washingRisk: 'Medium',
+            powerRisk: 'Medium',
+          },
+        };
+      }
+
+      function generateId() {
+        return 'prog_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+      }
+
+      function ensureReviewerScores(programme) {
+        if (!programme.reviewerScores) {
+          programme.reviewerScores = {};
+        }
+        DEFAULT_USERS.filter((user) => user.role === 'reviewer').forEach((reviewer) => {
+          if (!programme.reviewerScores[reviewer.id]) {
+            programme.reviewerScores[reviewer.id] = {};
+          }
+          ALL_DOMAINS.forEach((domain) => {
+            if (programme.reviewerScores[reviewer.id][domain.id] === undefined) {
+              programme.reviewerScores[reviewer.id][domain.id] = 0;
+            }
+          });
+        });
+      }
+
+      function getDomainPrompts(programme, domainId) {
+        const override = programme.domainPrompts && programme.domainPrompts[domainId];
+        if (override && Array.isArray(override)) return override;
+        const domain = ALL_DOMAINS.find((d) => d.id === domainId);
+        return domain ? domain.prompts : [];
+      }
+
+      function getCurrentReviewer() {
+        return state.currentUser && state.currentUser.role === 'reviewer' ? state.currentUser : null;
+      }
+
+      function getCurrentDomainScore(programme, domainId) {
+        const reviewer = getCurrentReviewer();
+        if (reviewer && programme.reviewerScores && programme.reviewerScores[reviewer.id]) {
+          return Number(programme.reviewerScores[reviewer.id][domainId] || 0);
+        }
+        return Number(programme.assessment.domains[domainId].rating || 0);
+      }
+
+      function setCurrentDomainScore(programme, domainId, value) {
+        const reviewer = getCurrentReviewer();
+        if (reviewer && programme.reviewerScores && programme.reviewerScores[reviewer.id]) {
+          programme.reviewerScores[reviewer.id][domainId] = Number(value);
+          programme.assessment.domains[domainId].rating = getAverageDomainScore(programme, domainId);
+          saveProgrammes();
+          return;
+        }
+        programme.assessment.domains[domainId].rating = Number(value);
+        saveProgrammes();
+      }
+
+      function getAverageDomainScore(programme, domainId) {
+        const entries = Object.values(programme.reviewerScores || {}).map((reviewerScores) => Number(reviewerScores[domainId] || 0));
+        if (!entries.length) {
+          return Number(programme.assessment.domains[domainId].rating || 0);
+        }
+        return entries.reduce((sum, score) => sum + score, 0) / entries.length;
+      }
+
+      function getSolidarityIndex(programme) {
+        const values = ALL_DOMAINS.map((d) => getAverageDomainScore(programme, d.id));
+        if (!values.length) return 0;
+        return ((values.reduce((sum, v) => sum + v, 0) / values.length) / 5) * 100;
+      }
+
+      function buildFinalReport(programme) {
+        const domainSummaries = ALL_DOMAINS.map((domain) => {
+          const item = programme.crossSummaries && programme.crossSummaries[domain.id];
+          const summary = item && item.summary ? item.summary : 'Not yet cross-reviewed.';
+          const status = item && item.status ? item.status : 'Pending';
+          return `- ${domain.name}: ${status} — ${summary}`;
+        }).join('\n');
+
+        return [
+          'SOLIDARIS Final Report',
+          `Project: ${programme.name || 'Untitled programme'}`,
+          `Owner: ${programme.assessorName || 'Not specified'}`,
+          `Funder: ${programme.funder || 'N/A'}`,
+          `Country: ${programme.country || 'N/A'}`,
+          '',
+          'Cross-reviewer synthesis:',
+          domainSummaries,
+          '',
+          'Risk summary:',
+          `- Solidarity-washing risk: ${programme.assessment.integrity.washingRisk}`,
+          `- Power-imbalance risk: ${programme.assessment.integrity.powerRisk}`,
+          '',
+          `Overall solidarity index: ${getSolidarityIndex(programme).toFixed(1)}%`
+        ].join('\n');
+      }
+
+      function createProgramme() {
+        const programme = {
+          id: generateId(),
+          name: '',
+          funder: '',
+          country: '',
+          sector: '',
+          assessorName: '',
+          assessment: emptyAssessment(),
+          reviewerScores: {},
+          domainPrompts: {},
+          owner: state.currentUser ? state.currentUser.id : 'owner1',
+          reviewerIds: [],
+          crossReviewerId: null,
+          domainSummaries: {},
+          crossSummaries: {},
+          finalReport: '',
+        };
+        ensureReviewerScores(programme);
+        return programme;
+      }
+
+      const state = {
+        users: [],
+        programmes: [],
+        activeId: null,
+        currentView: 'auth',
+        currentUser: null,
+        domainIndex: 0,
+        showIntegrity: false,
+        menuOpen: false,
+        pendingInvites: {},
+      };
+
+      // Google Sheets API configuration
+      const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbx514VvonoizSv8HjP-pQekMRzCaWpU4PTcoPehGUkOyzegg1i7FefqZiiqzfXa85Q/exec";
+
+      async function syncProgrammeToSheet(programme) {
+        if (!SHEET_API_URL) return;
+        try {
+          const payload = new URLSearchParams({
+            action: 'saveProject',
+            projectId: programme.id,
+            name: programme.name || '',
+            funder: programme.funder || '',
+            country: programme.country || '',
+            sector: programme.sector || '',
+            assessorName: programme.assessorName || '',
+            assessmentJson: JSON.stringify(programme.assessment || { domains: {}, integrity: {} }),
+            integrityJson: JSON.stringify(programme.assessment?.integrity || { washingRisk: 'Medium', powerRisk: 'Medium' }),
+            commentsJson: JSON.stringify(programme.comments || []),
+          });
+          const response = await fetch(SHEET_API_URL + '?' + payload.toString());
+          const result = await response.json();
+          console.log('Sheet sync result:', result);
+        } catch (error) {
+          console.warn('Sheet sync failed (data saved locally):', error.message);
+        }
+      }
+
+      function saveUsers() {
+        localStorage.setItem('solidaris-users', JSON.stringify(state.users));
+      }
+
+      function saveProgrammes() {
+        localStorage.setItem('solidaris-browser-only', JSON.stringify(state.programmes));
+        // Sync all programmes to sheet asynchronously
+        state.programmes.forEach((programme) => {
+          syncProgrammeToSheet(programme).catch(() => {});
+        });
+      }
+
+      function savePendingInvites() {
+        localStorage.setItem('solidaris-pending-invites', JSON.stringify(state.pendingInvites));
+      }
+
+      function loadUsers() {
+        const raw = localStorage.getItem('solidaris-users');
+        const saved = raw ? JSON.parse(raw) : [];
+        const merged = Array.isArray(saved) ? saved.map((user) => ({ ...user })) : [];
+
+        DEFAULT_USERS.forEach((defaultUser) => {
+          const existing = merged.find((user) => user.id === defaultUser.id || normalizeEmail(user.email) === normalizeEmail(defaultUser.email));
+          if (existing) {
+            Object.assign(existing, {
+              ...defaultUser,
+              ...existing,
+              username: existing.username || defaultUser.username || existing.id,
+              name: existing.name || defaultUser.name,
+              fullName: existing.fullName || defaultUser.fullName,
+              email: existing.email || defaultUser.email,
+              role: existing.role || defaultUser.role,
+              password: existing.password || defaultUser.password,
+            });
+          } else {
+            merged.push({ ...defaultUser });
+          }
+        });
+
+        state.users = merged;
+        saveUsers();
+      }
+
+      function loadProgrammes() {
+        const raw = localStorage.getItem('solidaris-browser-only');
+        state.programmes = raw ? JSON.parse(raw) : [];
+        state.programmes.forEach((programme) => {
+          ensureReviewerScores(programme);
+          if (!Array.isArray(programme.reviewerIds)) programme.reviewerIds = [];
+          if (!programme.owner && state.currentUser) programme.owner = state.currentUser.id;
+        });
+      }
+
+      function loadPendingInvites() {
+        const raw = localStorage.getItem('solidaris-pending-invites');
+        state.pendingInvites = raw ? JSON.parse(raw) : {};
+      }
+
+      function getActiveProgramme() {
+        return state.programmes.find((p) => p.id === state.activeId) || null;
+      }
+
+      function signIn(username, password, role) {
+        const normalized = username.trim();
+        const user = state.users.find((entry) => {
+          const matchesUsername = (entry.id === normalized || entry.username === normalized || normalizeEmail(entry.email) === normalizeEmail(normalized));
+          return matchesUsername && entry.password === password && entry.role === role;
+        });
+        if (!user) {
+          alert('Access denied. Please use a valid username, password and role.');
+          return false;
+        }
+        state.currentUser = user;
+        document.getElementById('loginUsername').value = '';
+        document.getElementById('loginPassword').value = '';
+        document.getElementById('signupFullName').value = '';
+        document.getElementById('signupEmail').value = '';
+        document.getElementById('signupProjectId').value = '';
+        state.currentView = 'list';
+        state.menuOpen = false;
+        render();
+        return true;
+      }
+
+      function joinReviewerToProject(user, projectId) {
+        const project = state.programmes.find((entry) => entry.id === projectId);
+        if (!project) {
+          alert('Project not found. Please use the project ID you were invited to.');
+          return false;
+        }
+        if (!Array.isArray(project.reviewerIds)) project.reviewerIds = [];
+        if (!project.reviewerIds.includes(user.id)) {
+          project.reviewerIds.push(user.id);
+          saveProgrammes();
+        }
+        state.activeId = project.id;
+        state.currentView = 'context';
+        return true;
+      }
+
+      function applyPendingReviewerInvite(user, projectIdOverride) {
+        const inviteProjectId = projectIdOverride || state.pendingInvites[normalizeEmail(user.email)];
+        if (!inviteProjectId) return false;
+
+        const project = state.programmes.find((entry) => entry.id === inviteProjectId);
+        if (!project) return false;
+
+        if (!Array.isArray(project.reviewerIds)) project.reviewerIds = [];
+        if (!project.reviewerIds.includes(user.id)) project.reviewerIds.push(user.id);
+        delete state.pendingInvites[normalizeEmail(user.email)];
+        savePendingInvites();
+        saveProgrammes();
+        state.activeId = project.id;
+        state.currentView = 'context';
+        return true;
+      }
+
+      function createAccount(username, password, role, fullName, email, projectId) {
+        const normalized = username.trim();
+        const cleanPassword = password.trim();
+        const cleanFullName = fullName.trim();
+        const cleanEmail = normalizeEmail(email);
+
+        if (!normalized || !cleanPassword) {
+          alert('Please provide a username and password.');
+          return false;
+        }
+
+        if (!cleanFullName) {
+          alert('Please provide your full name.');
+          return false;
+        }
+
+        if (!cleanEmail || !/^\S+@\S+\.\S+$/.test(cleanEmail)) {
+          alert('Please provide a valid email address.');
+          return false;
+        }
+
+        if (state.users.some((entry) => entry.id === normalized || normalizeEmail(entry.email) === cleanEmail)) {
+          alert('That username or email already exists.');
+          return false;
+        }
+
+        const user = {
+          id: normalized,
+          name: cleanFullName,
+          fullName: cleanFullName,
+          email: cleanEmail,
+          role,
+          password: cleanPassword,
+        };
+
+        state.users.push(user);
+        saveUsers();
+        state.currentUser = user;
+
+        if (role === 'reviewer') {
+          const inviteProjectId = (projectId || state.pendingInvites[cleanEmail] || '').trim();
+          if (inviteProjectId) {
+            const matchedProject = state.programmes.find((entry) => entry.id === inviteProjectId);
+            if (matchedProject) {
+              if (!Array.isArray(matchedProject.reviewerIds)) matchedProject.reviewerIds = [];
+              if (!matchedProject.reviewerIds.includes(user.id)) matchedProject.reviewerIds.push(user.id);
+              saveProgrammes();
+              state.activeId = matchedProject.id;
+              state.currentView = 'context';
+            } else {
+              state.pendingInvites[cleanEmail] = inviteProjectId;
+              savePendingInvites();
+              alert('Your reviewer profile was created. The project owner will link your account to the project once the invite is processed.');
+              state.currentView = 'list';
+            }
+          } else if (state.pendingInvites[cleanEmail]) {
+            applyPendingReviewerInvite(user, state.pendingInvites[cleanEmail]);
+          } else {
+            state.currentView = 'list';
+          }
+        } else {
+          state.currentView = 'list';
+        }
+
+        document.getElementById('loginUsername').value = '';
+        document.getElementById('loginPassword').value = '';
+        document.getElementById('signupFullName').value = '';
+        document.getElementById('signupEmail').value = '';
+        document.getElementById('signupProjectId').value = '';
+        render();
+        return true;
+      }
+
+      function renderUserBadge() {
+        const badge = document.getElementById('userBadge');
+        if (!badge) return;
+
+        if (!state.currentUser) {
+          badge.innerHTML = '<button class="btn ghost" type="button" id="loginPromptBtn">Sign in</button>';
+          const loginPromptBtn = document.getElementById('loginPromptBtn');
+          if (loginPromptBtn) {
+            loginPromptBtn.addEventListener('click', () => {
+              state.currentView = 'auth';
+              render();
+            });
+          }
+          return;
+        }
+
+        const initials = (state.currentUser.fullName || state.currentUser.name || state.currentUser.id || 'U')
+          .split(' ')
+          .filter(Boolean)
+          .slice(0, 2)
+          .map((part) => part[0])
+          .join('')
+          .toUpperCase();
+
+        badge.innerHTML = `
+          <div class="nav-menu">
+            <button type="button" class="avatar-pill" id="avatarToggle">
+              <span class="avatar-circle">${initials}</span>
+              <span class="avatar-text">
+                <span class="avatar-name">${state.currentUser.fullName || state.currentUser.name}</span>
+                <span class="avatar-role">${state.currentUser.role}</span>
+              </span>
+            </button>
+            ${state.menuOpen ? `
+              <div class="menu-panel">
+                <button type="button" class="menu-action" data-action="dashboard">Dashboard</button>
+                <button type="button" class="menu-action" data-action="profile">Profile</button>
+                <button type="button" class="menu-action" data-action="projects">Projects</button>
+                <button type="button" class="menu-action danger" data-action="logout">Log out</button>
+              </div>
+            ` : ''}
+          </div>
+        `;
+
+        const avatarToggle = document.getElementById('avatarToggle');
+        if (avatarToggle) {
+          avatarToggle.addEventListener('click', () => {
+            state.menuOpen = !state.menuOpen;
+            render();
+          });
+        }
+
+        badge.querySelectorAll('[data-action]').forEach((button) => {
+          button.addEventListener('click', () => {
+            const action = button.dataset.action;
+            if (action === 'dashboard') {
+              state.currentView = 'list';
+              state.menuOpen = false;
+            } else if (action === 'profile') {
+              if (state.activeId) {
+                state.currentView = 'profile';
+              } else {
+                state.currentView = 'list';
+              }
+              state.menuOpen = false;
+            } else if (action === 'projects') {
+              state.currentView = 'list';
+              state.menuOpen = false;
+            } else if (action === 'logout') {
+              state.currentUser = null;
+              state.activeId = null;
+              state.currentView = 'auth';
+              state.menuOpen = false;
+            }
+            render();
+          });
+        });
+      }
+
+      function renderList() {
+        const visibleProjects = getVisibleProjectsForUser(state.currentUser);
+        const emptyState = document.getElementById('emptyState');
+
+        if (visibleProjects.length === 0) {
+          emptyState.style.display = 'block';
+          const existingGrid = document.querySelector('.programmes-grid');
+          if (existingGrid) existingGrid.remove();
+          return;
+        }
+
+        emptyState.style.display = 'none';
+
+        const existingGrid = document.querySelector('.programmes-grid');
+        if (existingGrid) existingGrid.remove();
+
+        const grid = document.createElement('div');
+        grid.className = 'programmes-grid';
+
+        visibleProjects.forEach((programme) => {
+          const complete = ALL_DOMAINS.filter((d) => (programme.assessment.domains[d.id].evidenceSummary || '').trim()).length;
+          const card = document.createElement('button');
+          card.type = 'button';
+          card.className = 'programme-card';
+          card.innerHTML = `
+            <div class="top">
+              <div>
+                <div class="name">${programme.name || 'Untitled programme'}</div>
+                <div class="meta">${[programme.funder, programme.country].filter(Boolean).join(' · ') || 'No details yet'}</div>
+              </div>
+              <div style="font-size: 18px; color: #b0aa95;">→</div>
+            </div>
+            <div class="progress"><span style="width: ${(complete / ALL_DOMAINS.length) * 100}%"></span></div>
+            <div class="count">${complete} of ${ALL_DOMAINS.length} domains documented</div>
+          `;
+          card.addEventListener('click', () => {
+            state.activeId = programme.id;
+            state.currentView = 'context';
+            render();
+          });
+          grid.appendChild(card);
+        });
+
+        document.getElementById('listView').appendChild(grid);
+      }
+
+      function updateDomain(domainId, patch) {
+        if (!state.activeId) return;
+        state.programmes = state.programmes.map((programme) => {
+          if (programme.id !== state.activeId) return programme;
+          const nextProgramme = { ...programme };
+          const current = nextProgramme.assessment.domains[domainId];
+          nextProgramme.assessment.domains[domainId] = { ...current, ...patch };
+          if (state.currentUser && state.currentUser.role === 'reviewer') {
+            if (!nextProgramme.reviewerScores[state.currentUser.id]) nextProgramme.reviewerScores[state.currentUser.id] = {};
+            if (patch.rating !== undefined) nextProgramme.reviewerScores[state.currentUser.id][domainId] = Number(patch.rating);
+            if (patch.responses) nextProgramme.assessment.domains[domainId].responses = patch.responses;
+          }
+          nextProgramme.assessment.domains[domainId].rating = getAverageDomainScore(nextProgramme, domainId);
+          return nextProgramme;
+        });
+        saveProgrammes();
+      }
+
+      function updateIntegrity(patch) {
+        if (!state.activeId) return;
+        state.programmes = state.programmes.map((programme) => {
+          if (programme.id !== state.activeId) return programme;
+          return {
+            ...programme,
+            assessment: {
+              ...programme.assessment,
+              integrity: {
+                ...programme.assessment.integrity,
+                ...patch,
+              },
+            },
+          };
+        });
+        saveProgrammes();
+      }
+
+      function renderContext() {
+        const programme = getActiveProgramme();
+        if (!programme) return;
+        const isOwner = state.currentUser && state.currentUser.role === 'owner';
+        const isAdmin = state.currentUser && state.currentUser.role === 'superadmin';
+        const canEditContext = isOwner || isAdmin;
+
+        document.getElementById('programmeName').value = programme.name || '';
+        document.getElementById('programmeFunder').value = programme.funder || '';
+        document.getElementById('programmeCountry').value = programme.country || '';
+        document.getElementById('programmeSector').value = programme.sector || '';
+        document.getElementById('programmeAssessor').value = programme.assessorName || '';
+
+        const panel = document.getElementById('projectAccessPanel');
+        const projectCode = document.getElementById('activeProjectCode');
+        const inviteInput = document.getElementById('reviewerInviteInput');
+        const summary = document.getElementById('reviewerAccessSummary');
+        const inviteBtn = document.getElementById('inviteReviewerBtn');
+
+        if (projectCode) projectCode.value = programme.id || '';
+
+        if (panel) {
+          const showPanel = isOwner || isAdmin;
+          panel.style.display = showPanel ? 'block' : 'none';
+        }
+
+        if (inviteInput) {
+          inviteInput.disabled = !(isOwner || isAdmin);
+          inviteInput.value = inviteInput.value || '';
+        }
+
+        if (summary) {
+          const reviewers = (programme.reviewerIds || []).map((userId) => {
+            const user = state.users.find((entry) => entry.id === userId);
+            return user ? user.fullName || user.name : userId;
+          });
+          summary.textContent = reviewers.length ? `Assigned reviewers: ${reviewers.join(', ')}` : 'No reviewers assigned yet.';
+        }
+
+        if (inviteBtn) {
+          inviteBtn.disabled = !(isOwner || isAdmin);
+        }
+
+        const crossReviewerSelect = document.getElementById('crossReviewerSelect');
+        if (crossReviewerSelect && (isOwner || isAdmin)) {
+          const options = (programme.reviewerIds || []).map((userId) => {
+            const user = state.users.find((entry) => entry.id === userId);
+            return user ? `<option value="${user.id}" ${programme.crossReviewerId === user.id ? 'selected' : ''}>${user.fullName || user.name}</option>` : '';
+          }).join('');
+          crossReviewerSelect.innerHTML = `<option value="">Select cross-reviewer</option>${options}`;
+        }
+      }
+
+      function renderSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const active = getActiveProgramme();
+        if (!active) return;
+
+        let html = '';
+        TRIADS.forEach((triad) => {
+          html += `<div class="triad-block">
+            <div class="triad-label" style="color:${triad.color};">${triad.label}</div>`;
+          triad.domains.forEach((domain) => {
+            const actualIndex = ALL_DOMAINS.findIndex((d) => d.id === domain.id);
+            const done = !!(active.assessment.domains[domain.id].evidenceSummary || '').trim();
+            html += `<button type="button" class="domain-link ${state.domainIndex === actualIndex && !state.showIntegrity ? 'active' : ''}" data-index="${actualIndex}" style="${state.domainIndex === actualIndex && !state.showIntegrity ? 'background: white;' : ''}">
+              <span class="dot ${done ? 'done' : ''}"></span>
+              ${domain.name}
+            </button>`;
+          });
+          html += '</div>';
+        });
+
+        html += `<button type="button" class="integrity-link ${state.showIntegrity ? 'active' : ''}" id="integrityTab"><span class="dot"></span>Integrity checks</button>`;
+        sidebar.innerHTML = html;
+
+        sidebar.querySelectorAll('.domain-link').forEach((button) => {
+          button.addEventListener('click', () => {
+            state.domainIndex = Number(button.dataset.index);
+            state.showIntegrity = false;
+            render();
+          });
+        });
+
+        const integrityTab = document.getElementById('integrityTab');
+        if (integrityTab) {
+          integrityTab.addEventListener('click', () => {
+            state.showIntegrity = true;
+            render();
+          });
+        }
+      }
+
+      function renderDomainForm() {
+        const el = document.getElementById('domainPanel');
+        const active = getActiveProgramme();
+        if (!active) return;
+
+        if (state.showIntegrity) {
+          const integrity = active.assessment.integrity;
+          el.innerHTML = `
+            <div class="eyebrow" style="color:#7A3B2E;">Cross-cutting check</div>
+            <h2 style="font-size: 19px; margin-bottom: 18px;">Solidarity integrity & risk</h2>
+            <div class="stack">
+              <div class="field"><label>Contradictions between programme goals and the funder's wider portfolio?</label><textarea data-integrity="alignmentContradiction">${integrity.alignmentContradiction || ''}</textarea></div>
+              <div class="field"><label>Who bears the primary burden of implementation costs?</label><textarea data-integrity="burdenBearer">${integrity.burdenBearer || ''}</textarea></div>
+              <div class="field"><label>What is the actual (not stated) level of community voice in decisions?</label><textarea data-integrity="voiceReality">${integrity.voiceReality || ''}</textarea></div>
+            </div>
+            <div class="field-group" style="margin-top: 22px;">
+              <div class="field">
+                <label>Solidarity-washing risk</label>
+                <select data-integrity-select="washingRisk">
+                  ${['Low', 'Medium', 'High'].map((r) => `<option ${integrity.washingRisk === r ? 'selected' : ''}>${r}</option>`).join('')}
+                </select>
+              </div>
+              <div class="field">
+                <label>Power-imbalance risk</label>
+                <select data-integrity-select="powerRisk">
+                  ${['Low', 'Medium', 'High'].map((r) => `<option ${integrity.powerRisk === r ? 'selected' : ''}>${r}</option>`).join('')}
+                </select>
+              </div>
+            </div>
+            <div class="button-bar">
+              <button type="button" class="btn ghost" id="integrityBackBtn">Back</button>
+              <button type="button" class="btn primary" id="finishAssessmentBtn">View profile</button>
+            </div>
+          `;
+
+          el.querySelectorAll('[data-integrity]').forEach((field) => {
+            field.addEventListener('input', (event) => {
+              updateIntegrity({ [event.target.dataset.integrity]: event.target.value });
+            });
+          });
+
+          el.querySelectorAll('[data-integrity-select]').forEach((field) => {
+            field.addEventListener('change', (event) => {
+              const key = event.target.dataset.integritySelect === 'washingRisk' ? 'washingRisk' : 'powerRisk';
+              updateIntegrity({ [key]: event.target.value });
+            });
+          });
+
+          document.getElementById('integrityBackBtn').addEventListener('click', () => {
+            state.showIntegrity = false;
+            state.domainIndex = ALL_DOMAINS.length - 1;
+            render();
+          });
+
+          document.getElementById('finishAssessmentBtn').addEventListener('click', () => {
+            state.currentView = 'profile';
+            render();
+          });
+          return;
+        }
+
+        const domain = ALL_DOMAINS[state.domainIndex];
+        const prompts = getDomainPrompts(active, domain.id);
+        const data = active.assessment.domains[domain.id];
+        const currentScore = getCurrentDomainScore(active, domain.id);
+        const isOwner = state.currentUser && state.currentUser.role === 'owner';
+
+        el.innerHTML = `
+          <div class="eyebrow" style="color:${domain.triadColor};">${domain.triadLabel}</div>
+          <h2 style="font-size: 19px; margin-bottom: 18px;">${domain.name}</h2>
+          <div class="role-badge">${isOwner ? 'Project owner — can edit questions only' : 'Reviewer access — can score and assess'}</div>
+          <div class="range-row">
+            <div class="rating-row">
+              <span style="font-size: 11.5px; font-weight: 600; color: var(--muted);">Rating</span>
+              <span class="score-badge">${currentScore}</span>
+            </div>
+            <input type="range" min="0" max="5" step="1" value="${currentScore}" data-domain-rating="${domain.id}" />
+            <div class="range-scale"><span>0</span><span>5</span></div>
+          </div>
+
+          <div class="stack" style="margin-bottom: 18px;">
+            ${prompts.map((prompt, index) => `
+              <div class="field">
+                <label>${isOwner ? 'Question prompt (editable by owner)' : prompt}</label>
+                ${isOwner ? `<textarea data-domain-prompt="${domain.id}" data-index="${index}">${prompt}</textarea>` : `<div style="background:#f9f6f1;border:1px solid #efeae0;border-radius:8px;padding:10px 12px;font-size:13px;color:#3a362c;">${prompt}</div>`}
+              </div>
+            `).join('')}
+          </div>
+
+          <div class="field-group">
+            <div class="field">
+              <label>Evidence type</label>
+              <select data-domain-select="${domain.id}" data-field="evidenceType">
+                <option value="">Select…</option>
+                ${EVIDENCE_TYPES.map((option) => `<option value="${option}" ${data.evidenceType === option ? 'selected' : ''}>${option}</option>`).join('')}
+              </select>
+            </div>
+            <div class="field">
+              <label>Confidence</label>
+              <select data-domain-select="${domain.id}" data-field="confidence">
+                <option value="">Select…</option>
+                ${CONFIDENCE_LEVELS.map((option) => `<option value="${option}" ${data.confidence === option ? 'selected' : ''}>${option}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+
+          <div class="field" style="margin-top: 18px;">
+            <label>Evidence summary</label>
+            <textarea data-domain-field="${domain.id}" data-summary="true">${data.evidenceSummary || ''}</textarea>
+          </div>
+
+          ${isOwner ? `<div class="field" style="margin-top: 18px; background: #faf7f2; border: 1px solid #e9e0ce; border-radius: 8px; padding: 12px; color: var(--muted); font-size: 12px;">Domains and subdomains are locked. Only the question text can be edited here.</div>` : ''}
+
+          <div class="reviewer-strip" id="reviewerSummary"></div>
+
+          <div class="button-bar">
+            <button type="button" class="btn ghost ${state.domainIndex === 0 ? 'disabled' : ''}" id="prevDomainBtn" ${state.domainIndex === 0 ? 'disabled' : ''}>Back</button>
+            <button type="button" class="btn primary" id="nextDomainBtn">Continue</button>
+          </div>
+        `;
+
+        const reviewerSummary = document.getElementById('reviewerSummary');
+        if (reviewerSummary) {
+          reviewerSummary.innerHTML = DEFAULT_USERS.filter((user) => user.role === 'reviewer').map((reviewer) => {
+            const score = Number((active.reviewerScores && active.reviewerScores[reviewer.id] && active.reviewerScores[reviewer.id][domain.id]) || 0);
+            return `<div class="reviewer-item"><span>${reviewer.name}</span><strong>${score}</strong></div>`;
+          }).join('');
+        }
+
+        el.querySelector('[data-domain-rating]').addEventListener('input', (event) => {
+          const nextValue = Number(event.target.value);
+          setCurrentDomainScore(active, domain.id, nextValue);
+          render();
+        });
+
+        el.querySelectorAll('[data-domain-prompt]').forEach((field) => {
+          field.addEventListener('input', (event) => {
+            const index = Number(event.target.dataset.index);
+            const prompts = getDomainPrompts(active, domain.id).slice();
+            prompts[index] = event.target.value;
+            active.domainPrompts = active.domainPrompts || {};
+            active.domainPrompts[domain.id] = prompts;
+            saveProgrammes();
+          });
+        });
+
+        el.querySelectorAll('[data-domain-select]').forEach((field) => {
+          field.addEventListener('change', (event) => {
+            updateDomain(domain.id, { [event.target.dataset.field]: event.target.value });
+          });
+        });
+
+        const summaryField = el.querySelector('[data-summary="true"]');
+        if (summaryField) {
+          summaryField.addEventListener('input', (event) => {
+            updateDomain(domain.id, { evidenceSummary: event.target.value });
+          });
+        }
+
+        document.getElementById('prevDomainBtn')?.addEventListener('click', () => {
+          if (state.domainIndex > 0) {
+            state.domainIndex -= 1;
+            render();
+          }
+        });
+
+        document.getElementById('nextDomainBtn').addEventListener('click', () => {
+          const validation = validateDomainQuestions(domain.id, active);
+          if (validation) {
+            alert(validation);
+            return;
+          }
+          state.domainIndex = Math.min(state.domainIndex + 1, ALL_DOMAINS.length);
+          if (state.domainIndex === ALL_DOMAINS.length) {
+            state.showIntegrity = true;
+          }
+          render();
+        });
+      }
+
+      function renderReport() {
+        const programme = getActiveProgramme();
+        if (!programme) return;
+
+        const reportSummary = document.getElementById('reportSummary');
+        reportSummary.textContent = `${programme.name || 'Untitled programme'} · ${[programme.funder, programme.country].filter(Boolean).join(' · ')}`;
+
+        const completedCount = ALL_DOMAINS.filter((d) => (programme.assessment.domains[d.id].evidenceSummary || '').trim()).length;
+        const averageRating = (
+          ALL_DOMAINS.reduce((sum, d) => sum + Number(getAverageDomainScore(programme, d.id) || 0), 0) /
+          ALL_DOMAINS.length
+        ).toFixed(1);
+        const solidarityIndex = getSolidarityIndex(programme).toFixed(1);
+
+        const summaryGrid = document.getElementById('summaryGrid');
+        summaryGrid.innerHTML = `
+          <div class="summary-card">
+            <div class="label">Programme</div>
+            <div class="value" style="font-size: 18px; line-height: 1.3;">${programme.name || 'Untitled'}</div>
+          </div>
+          <div class="summary-card">
+            <div class="label">Coverage</div>
+            <div class="value">${completedCount}/${ALL_DOMAINS.length}</div>
+          </div>
+          <div class="summary-card">
+            <div class="label">Mean rating</div>
+            <div class="value">${averageRating}</div>
+          </div>
+          <div class="summary-card">
+            <div class="label">Solidarity index</div>
+            <div class="value">${solidarityIndex}%</div>
+          </div>
+        `;
+
+        const evidenceList = document.getElementById('reportEvidenceList');
+        evidenceList.innerHTML = ALL_DOMAINS.map((domain) => {
+          const item = programme.assessment.domains[domain.id];
+          return `<li><strong>${domain.name}</strong><br>Mean review score: ${getAverageDomainScore(programme, domain.id).toFixed(1)}<br>${item.evidenceSummary || 'No evidence recorded yet'}</li>`;
+        }).join('');
+
+        const riskList = document.getElementById('reportRiskList');
+        riskList.innerHTML = `
+          <li><strong>Solidarity-washing risk:</strong> ${programme.assessment.integrity.washingRisk}</li>
+          <li><strong>Power-imbalance risk:</strong> ${programme.assessment.integrity.powerRisk}</li>
+          <li><strong>Burden bearer:</strong> ${programme.assessment.integrity.burdenBearer || 'Not yet documented'}</li>
+          <li><strong>Community voice:</strong> ${programme.assessment.integrity.voiceReality || 'Not yet documented'}</li>
+          <li><strong>Cross-evaluation average:</strong> ${averageRating}/5</li>
+        `;
+
+        const actionList = document.getElementById('reportActionList');
+        const actionSuggestions = [
+          'Clarify who holds decision-making power and how local actors are represented.',
+          'Strengthen evidence quality by documenting plans, budget flows, and implementation realities.',
+          'Address the highest-risk domain with a targeted review and community feedback loop.',
+          'Set a follow-up schedule to revisit the assessment after implementation changes.'
+        ];
+        actionList.innerHTML = actionSuggestions.map((item) => `<li>${item}</li>`).join('');
+
+        const crossReviewerId = programme.crossReviewerId;
+        const isOwner = state.currentUser && state.currentUser.role === 'owner';
+        const isCrossReviewer = state.currentUser && state.currentUser.id === crossReviewerId;
+        const crossPanel = document.getElementById('crossReviewerSynthesisPanel');
+        if (crossPanel) {
+          const crossReviewer = state.users.find((user) => user.id === crossReviewerId);
+          const canEdit = isCrossReviewer || isOwner;
+
+          let html = `
+            <div class="panel" style="margin-top: 18px;">
+              <h3>Cross-reviewer synthesis</h3>
+              <div style="font-size: 12px; color: var(--muted); margin-bottom: 14px;">Assigned cross-reviewer: ${crossReviewer ? crossReviewer.fullName || crossReviewer.name : 'Not assigned yet'}</div>
+          `;
+
+          if (!crossReviewer || !crossReviewerId) {
+            html += '<div style="font-size: 12px; color: var(--muted);">No cross-reviewer is assigned yet. The owner should select a reviewer from the project access panel.</div>';
+          } else {
+            html += ALL_DOMAINS.map((domain) => {
+              const summary = (programme.crossSummaries && programme.crossSummaries[domain.id]) || { status: 'Pending', summary: '' };
+              return `
+                <div style="margin-bottom: 14px; border:1px solid #efeae0; border-radius:10px; padding:12px; background:#faf7f2;">
+                  <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 8px;">${domain.name}</div>
+                  <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
+                    <label style="font-size:12px; color: var(--muted);">Alignment status</label>
+                    <select data-cross-status="${domain.id}" ${canEdit ? '' : 'disabled'} style="font-size:12px;">
+                      <option value="Pending" ${summary.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                      <option value="Aligns" ${summary.status === 'Aligns' ? 'selected' : ''}>Aligns</option>
+                      <option value="Does not align" ${summary.status === 'Does not align' ? 'selected' : ''}>Does not align</option>
+                      <option value="Needs review" ${summary.status === 'Needs review' ? 'selected' : ''}>Needs review</option>
+                    </select>
+                  </div>
+                  <textarea data-cross-summary="${domain.id}" ${canEdit ? '' : 'disabled'} rows="3" style="width:100%; border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:13px; resize: vertical;">${summary.summary || ''}</textarea>
+                  ${canEdit ? `<div style="display:flex; justify-content:flex-end; margin-top: 10px;"><button type="button" class="btn primary" data-cross-save="${domain.id}">Save cross-review</button></div>` : ''}
+                </div>
+              `;
+            }).join('');
+          }
+
+          html += '</div>';
+          crossPanel.innerHTML = html;
+
+          if (canEdit && crossReviewerId) {
+            crossPanel.querySelectorAll('[data-cross-save]').forEach((button) => {
+              button.addEventListener('click', () => {
+                const domainId = button.dataset.crossSave;
+                const summaryBox = crossPanel.querySelector(`[data-cross-summary="${domainId}"]`);
+                const statusBox = crossPanel.querySelector(`[data-cross-status="${domainId}"]`);
+                if (!summaryBox || !statusBox) return;
+                const nextSummary = {
+                  status: statusBox.value,
+                  summary: summaryBox.value.trim(),
+                };
+                programme.crossSummaries = programme.crossSummaries || {};
+                programme.crossSummaries[domainId] = nextSummary;
+                programme.finalReport = buildFinalReport(programme);
+                saveProgrammes();
+                render();
+              });
+            });
+          }
+        }
+
+        const finalReportPanel = document.getElementById('finalReportHandoffPanel');
+        if (finalReportPanel) {
+          const finalText = programme.finalReport || buildFinalReport(programme);
+          programme.finalReport = finalText;
+          finalReportPanel.innerHTML = `
+            <div class="panel" style="margin-top:18px;">
+              <h3>Final report handoff</h3>
+              <div style="font-size:12px; color: var(--muted); margin-bottom: 10px;">This final report merges the domain evidence and the cross-reviewer synthesis.</div>
+              <textarea rows="10" readonly style="width:100%; border:1px solid var(--line); border-radius:10px; padding:12px; font-size:12px; background:#faf7f2; resize: vertical;">${finalText}</textarea>
+              <div style="display:flex; justify-content:flex-end; margin-top: 12px;">
+                <button type="button" class="btn primary" id="downloadFinalReportBtn">Download final report</button>
+              </div>
+            </div>
+          `;
+          const downloadBtn = document.getElementById('downloadFinalReportBtn');
+          if (downloadBtn) {
+            downloadBtn.addEventListener('click', () => {
+              exportFinalReport();
+            });
+          }
+        }
+      }
+
+      function renderProfile() {
+        const programme = getActiveProgramme();
+        if (!programme) return;
+
+        const profileSummary = document.getElementById('profileSummary');
+        profileSummary.textContent = `${programme.name || 'Untitled programme'} · ${[programme.funder, programme.country].filter(Boolean).join(' · ')}`;
+
+        const triadSummary = document.getElementById('triadSummary');
+        const triadAverages = TRIADS.map((triad) => {
+          const ratings = triad.domains.map((d) => getAverageDomainScore(programme, d.id));
+          return {
+            ...triad,
+            avg: (ratings.reduce((sum, value) => sum + value, 0) / ratings.length).toFixed(1),
+          };
+        });
+
+        triadSummary.innerHTML = triadAverages.map((triad) => `
+          <div class="triad-box">
+            <div class="kicker" style="color:${triad.color};">${triad.label}</div>
+            <div class="sub">${triad.sub}</div>
+            <div style="display:flex; align-items: baseline; gap: 6px;">
+              <span class="avg" style="font-family: Georgia, serif;">${triad.avg}</span>
+              <span style="font-size: 11px; color: #b0aa95;">/ 5 avg.</span>
+            </div>
+          </div>
+        `).join('');
+
+        const riskCards = [
+          { label: 'Solidarity-washing risk', level: programme.assessment.integrity.washingRisk },
+          { label: 'Power-imbalance risk', level: programme.assessment.integrity.powerRisk },
+          { label: 'Solidarity index', level: `${getSolidarityIndex(programme).toFixed(1)}%` },
+        ];
+
+        const riskMarkup = riskCards.map((risk) => {
+          const colors = { Low: '#2F6F5E', Medium: '#B0782E', High: '#7A3B2E' };
+          const display = risk.level.includes('%') ? risk.level : risk.level;
+          return `
+            <div class="risk-card" style="margin-top: 12px;">
+              <span style="font-size: 12px; color: #4a4438;">${risk.label}</span>
+              <span class="risk-pill" style="background:${risk.label.includes('index') ? '#2F6F5E' : (colors[risk.level] || '#b0aa95')};">${display}</span>
+            </div>
+          `;
+        }).join('');
+
+        triadSummary.insertAdjacentHTML('beforeend', riskMarkup);
+
+        const chartData = ALL_DOMAINS.map((d) => ({
+          domain: d.name.split(' ')[0] === 'Common' ? 'Common Good' : d.name,
+          value: getAverageDomainScore(programme, d.id),
+        }));
+
+        drawRadar(chartData);
+
+        const evidenceGrid = document.getElementById('evidenceGrid');
+        evidenceGrid.innerHTML = ALL_DOMAINS.map((domain) => {
+          const value = programme.assessment.domains[domain.id];
+          return `
+            <div class="evidence-card">
+              <div class="title" style="color:${domain.triadColor};">${domain.name}</div>
+              <div class="text">${value.evidenceSummary || '<span class="muted-note">No evidence documented yet</span>'}</div>
+              ${value.confidence ? `<div style="font-size: 10px; color: var(--muted); margin-top: 12px;">Confidence: ${value.confidence}</div>` : ''}
+            </div>
+          `;
+        }).join('');
+      }
+
+      function drawRadar(chartData) {
+        const svg = document.getElementById('radarSvg');
+        const cx = 210;
+        const cy = 155;
+        const outer = 110;
+        const levels = 5;
+        const labels = chartData.map((item, index) => {
+          const angle = (Math.PI * 2 * index) / chartData.length - Math.PI / 2;
+          const x = cx + Math.cos(angle) * outer;
+          const y = cy + Math.sin(angle) * outer;
+          return { label: item.domain, angle, x, y };
+        });
+
+        const grid = [];
+        for (let i = 1; i <= levels; i++) {
+          const ring = labels.map((point) => {
+            const x = cx + Math.cos(point.angle) * (outer * (i / levels));
+            const y = cy + Math.sin(point.angle) * (outer * (i / levels));
+            return `${x},${y}`;
+          }).join(' ');
+          grid.push(`<polygon points="${ring}" fill="none" stroke="#e4dfd0" stroke-width="1"/>`);
+        }
+
+        const polygonPoints = chartData.map((point, index) => {
+          const angle = (Math.PI * 2 * index) / chartData.length - Math.PI / 2;
+          const radius = (point.value / 5) * outer;
+          const x = cx + Math.cos(angle) * radius;
+          const y = cy + Math.sin(angle) * radius;
+          return `${x},${y}`;
+        }).join(' ');
+
+        const labelsMarkup = labels.map((label) => {
+          const x = cx + Math.cos(label.angle) * (outer + 24);
+          const y = cy + Math.sin(label.angle) * (outer + 24);
+          return `<text x="${x}" y="${y}" font-size="10" fill="#4a4438" text-anchor="middle">${label.label}</text>`;
+        }).join('');
+
+        svg.innerHTML = `
+          <g>
+            ${grid.join('')}
+            <polygon points="${polygonPoints}" fill="#2F6F5E" fill-opacity="0.28" stroke="#2F6F5E" stroke-width="2"/>
+            ${labelsMarkup}
+          </g>
+        `;
+      }
+
+      function showView(viewName) {
+        document.querySelectorAll('.view').forEach((view) => {
+          view.classList.toggle('active', view.id === `${viewName}View`);
+        });
+      }
+
+      function render() {
+        renderUserBadge();
+        showView(state.currentView);
+
+        if (state.currentView === 'auth') {
+          return;
+        }
+
+        if (state.currentView === 'list') {
+          renderList();
+          return;
+        }
+
+        if (state.currentView === 'context') {
+          renderContext();
+          return;
+        }
+
+        if (state.currentView === 'assess') {
+          renderSidebar();
+          renderDomainForm();
+          return;
+        }
+
+        if (state.currentView === 'profile') {
+          renderProfile();
+          return;
+        }
+
+        if (state.currentView === 'report') {
+          renderReport();
+        }
+      }
+
+      function exportFinalReport() {
+        const programme = getActiveProgramme();
+        if (!programme) return;
+        const text = [
+          `SOLIDARIS Final Report`,
+          `Programme: ${programme.name || 'Untitled programme'}`,
+          `Funder: ${programme.funder || 'N/A'}`,
+          `Country: ${programme.country || 'N/A'}`,
+          '',
+          'Domain scores:',
+          ...ALL_DOMAINS.map((domain) => `- ${domain.name}: ${getAverageDomainScore(programme, domain.id).toFixed(1)}/5`),
+          '',
+          `Solidarity Index: ${getSolidarityIndex(programme).toFixed(1)}%`,
+          `Power-imbalance risk: ${programme.assessment.integrity.powerRisk}`,
+          `Solidarity-washing risk: ${programme.assessment.integrity.washingRisk}`,
+        ].join('\n');
+
+        const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${(programme.name || 'solidarity-report').replace(/\s+/g, '-')}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      }
+
+      document.getElementById('newAssessmentBtn').addEventListener('click', () => {
+        const programme = createProgramme();
+        state.programmes.unshift(programme);
+        state.activeId = programme.id;
+        state.currentView = 'context';
+        saveProgrammes();
+        render();
+      });
+
+      document.getElementById('newAssessmentBtnSecondary').addEventListener('click', () => {
+        const programme = createProgramme();
+        state.programmes.unshift(programme);
+        state.activeId = programme.id;
+        state.currentView = 'context';
+        saveProgrammes();
+        render();
+      });
+
+      document.getElementById('beginAssessmentBtn').addEventListener('click', () => {
+        const programme = getActiveProgramme();
+        if (!programme) return;
+        const isOwner = state.currentUser && state.currentUser.role === 'owner';
+        const isAdmin = state.currentUser && state.currentUser.role === 'superadmin';
+        const canEditProject = isOwner || isAdmin;
+
+        programme.name = document.getElementById('programmeName').value.trim();
+        programme.funder = document.getElementById('programmeFunder').value.trim();
+        programme.country = document.getElementById('programmeCountry').value.trim();
+        programme.sector = document.getElementById('programmeSector').value.trim();
+        programme.assessorName = document.getElementById('programmeAssessor').value.trim();
+
+        if (!canEditProject && !programme.name) {
+          alert('This project is locked to the owner. Please return to the dashboard and use your assigned project context.');
+          return;
+        }
+
+        if (canEditProject && (!programme.name || !programme.funder || !programme.country || !programme.sector || !programme.assessorName)) {
+          alert('Please complete the project context fields before beginning the assessment.');
+          return;
+        }
+
+        state.currentView = 'assess';
+        state.domainIndex = 0;
+        state.showIntegrity = false;
+        saveProgrammes();
+        render();
+      });
+
+      document.getElementById('editAssessmentBtn').addEventListener('click', () => {
+        state.currentView = 'assess';
+        state.showIntegrity = false;
+        state.domainIndex = 0;
+        render();
+      });
+
+      document.getElementById('openReportBtn').addEventListener('click', () => {
+        state.currentView = 'report';
+        render();
+      });
+
+      document.getElementById('backToProfileBtn').addEventListener('click', () => {
+        state.currentView = 'profile';
+        render();
+      });
+
+      document.getElementById('loginBtn').addEventListener('click', () => {
+        const username = document.getElementById('loginUsername').value;
+        const password = document.getElementById('loginPassword').value;
+        const role = document.getElementById('loginRole').value;
+        signIn(username, password, role);
+      });
+
+      document.getElementById('createAccountBtn').addEventListener('click', () => {
+        const username = document.getElementById('loginUsername').value;
+        const password = document.getElementById('loginPassword').value;
+        const role = document.getElementById('loginRole').value;
+        const fullName = document.getElementById('signupFullName').value;
+        const email = document.getElementById('signupEmail').value;
+        const projectId = document.getElementById('signupProjectId').value;
+        createAccount(username, password, role, fullName, email, projectId);
+      });
+
+      document.getElementById('inviteReviewerBtn')?.addEventListener('click', () => {
+        const project = getActiveProgramme();
+        if (!project || !state.currentUser || (state.currentUser.role !== 'owner' && state.currentUser.role !== 'superadmin')) return;
+        const emails = document.getElementById('reviewerInviteInput').value
+          .split(',')
+          .map((value) => value.trim())
+          .filter(Boolean);
+
+        if (!emails.length) {
+          alert('Add at least one reviewer email address.');
+          return;
+        }
+
+        emails.forEach((email) => {
+          const normalized = normalizeEmail(email);
+          const user = state.users.find((entry) => normalizeEmail(entry.email) === normalized);
+          if (user && user.role === 'reviewer') {
+            if (!Array.isArray(project.reviewerIds)) project.reviewerIds = [];
+            if (!project.reviewerIds.includes(user.id)) {
+              project.reviewerIds.push(user.id);
+            }
+          } else {
+            state.pendingInvites[normalized] = project.id;
+          }
+        });
+        savePendingInvites();
+        saveProgrammes();
+        render();
+      });
+
+      document.getElementById('crossReviewerSelect')?.addEventListener('change', (event) => {
+        const project = getActiveProgramme();
+        if (!project) return;
+        const userId = event.target.value;
+        project.crossReviewerId = userId || null;
+        if (!userId) {
+          project.crossSummaries = {};
+        }
+        saveProgrammes();
+        render();
+      });
+
+      loadUsers();
+      loadProgrammes();
+      loadPendingInvites();
+      render();
+
+      window.exportFinalReport = exportFinalReport;
+    </script>
+  </body>
+</html>
