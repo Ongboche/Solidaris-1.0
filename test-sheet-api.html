@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Sheets API Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .test-section {
+      margin-bottom: 30px;
+    }
+    h1 {
+      color: #2f6f5e;
+      margin-top: 0;
+    }
+    h2 {
+      font-size: 18px;
+      color: #333;
+      margin-bottom: 10px;
+    }
+    button {
+      background: #2f6f5e;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+    button:hover {
+      background: #26594b;
+    }
+    .output {
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 15px;
+      margin-top: 10px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      max-height: 400px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    .success {
+      color: #2f6f5e;
+      background: #f0f8f6;
+      border-color: #2f6f5e;
+    }
+    .error {
+      color: #c00;
+      background: #fdf0f0;
+      border-color: #c00;
+    }
+    .loading {
+      color: #666;
+      font-style: italic;
+    }
+    .status {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 3px;
+      font-size: 12px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    .status.ok { background: #d4edda; color: #155724; }
+    .status.error { background: #f8d7da; color: #721c24; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🧪 Google Sheets API Test Suite</h1>
+    <p>Testing the connection to your Google Apps Script and Sheet configuration.</p>
+    <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; padding: 15px; margin-top: 10px;">
+      <strong>⚠️ Important:</strong> If you see errors like "Project not found" or "Cannot read properties", you need to update your Apps Script code. 
+      <a href="#update-script" style="color: #0066cc; text-decoration: underline;">See update instructions below.</a>
+    </div>
+  </div>
+
+  <div class="card test-section">
+    <h2>1. Test Endpoint Connection</h2>
+    <button onclick="testEndpoint()">Test GET Projects</button>
+    <button onclick="testEndpointStatus()">Test Status Only</button>
+    <div id="endpoint-output" class="output loading">Waiting for test...</div>
+  </div>
+
+  <div class="card test-section">
+    <h2>2. Test Create User</h2>
+    <button onclick="testCreateUser()">Create Test User</button>
+    <div id="user-output" class="output loading">Waiting for test...</div>
+  </div>
+
+  <div class="card test-section">
+    <h2>3. Test Create Project</h2>
+    <button onclick="testCreateProject()">Create Test Project</button>
+    <div id="project-output" class="output loading">Waiting for test...</div>
+  </div>
+
+  <div class="card test-section">
+    <h2>4. Test Save Project</h2>
+    <button onclick="testSaveProject()">Save Test Data</button>
+    <div id="save-output" class="output loading">Waiting for test...</div>
+  </div>
+
+  <div class="card test-section">
+    <h2>5. Full Data Flow Test</h2>
+    <p>This will create a user, project, and save data to test the complete flow.</p>
+    <button onclick="testFullFlow()">Run Full Flow</button>
+    <div id="flow-output" class="output loading">Waiting for test...</div>
+  </div>
+
+  <script>
+    const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbx514VvonoizSv8HjP-pQekMRzCaWpU4PTcoPehGUkOyzegg1i7FefqZiiqzfXa85Q/exec";
+
+    async function logOutput(elementId, message, isError = false) {
+      const el = document.getElementById(elementId);
+      el.textContent = message;
+      el.className = 'output ' + (isError ? 'error' : 'success');
+    }
+
+    async function testEndpointStatus() {
+      const elementId = 'endpoint-output';
+      try {
+        document.getElementById(elementId).textContent = 'Testing connection...';
+        document.getElementById(elementId).className = 'output loading';
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+        const response = await fetch(SHEET_API_URL, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        const status = response.status;
+        const text = await response.text();
+        
+        await logOutput(elementId, `Status: ${status}\nEndpoint is responding!\n\nResponse preview:\n${text.substring(0, 500)}`);
+      } catch (error) {
+        await logOutput(elementId, `Error: ${error.message}\n\nThe endpoint may not be deployed or accessible.`, true);
+      }
+    }
+
+    async function testEndpoint() {
+      const elementId = 'endpoint-output';
+      try {
+        document.getElementById(elementId).textContent = 'Fetching projects...';
+        document.getElementById(elementId).className = 'output loading';
+
+        const response = await fetch(`${SHEET_API_URL}?action=getProjects`);
+        const data = await response.json();
+
+        if (data.ok) {
+          await logOutput(elementId, `✓ Success!\n\nProjects found: ${data.projects?.length || 0}\n\nData:\n${JSON.stringify(data, null, 2)}`);
+        } else {
+          await logOutput(elementId, `✗ Error: ${data.error}\n\nFull response:\n${JSON.stringify(data, null, 2)}`, true);
+        }
+      } catch (error) {
+        await logOutput(elementId, `✗ Request failed: ${error.message}\n\nThe endpoint may not be deployed or accessible.`, true);
+      }
+    }
+
+    async function testCreateUser() {
+      const elementId = 'user-output';
+      try {
+        document.getElementById(elementId).textContent = 'Creating test user...';
+        document.getElementById(elementId).className = 'output loading';
+
+        const params = new URLSearchParams({
+          action: 'createUser',
+          username: 'testuser_' + Date.now(),
+          password: 'Test123!',
+          fullName: 'Test User ' + new Date().toLocaleTimeString(),
+          email: 'test_' + Date.now() + '@solidaris.test',
+          role: 'reviewer'
+        });
+
+        const response = await fetch(`${SHEET_API_URL}?${params.toString()}`);
+        const data = await response.json();
+
+        if (data.ok) {
+          await logOutput(elementId, `✓ User created!\n\nUsername: ${data.user?.username}\nEmail: ${data.user?.email}\nID: ${data.user?.id}\n\nFull response:\n${JSON.stringify(data, null, 2)}`);
+        } else {
+          await logOutput(elementId, `✗ Error: ${data.error}\n\nFull response:\n${JSON.stringify(data, null, 2)}`, true);
+        }
+      } catch (error) {
+        await logOutput(elementId, `✗ Request failed: ${error.message}`, true);
+      }
+    }
+
+    async function testCreateProject() {
+      const elementId = 'project-output';
+      try {
+        document.getElementById(elementId).textContent = 'Creating test project...';
+        document.getElementById(elementId).className = 'output loading';
+
+        const params = new URLSearchParams({
+          action: 'createProject',
+          name: 'Test Project ' + new Date().toLocaleTimeString(),
+          funder: 'Test Funder',
+          country: 'Test Country',
+          sector: 'Health',
+          ownerId: 'testowner_' + Date.now()
+        });
+
+        const response = await fetch(`${SHEET_API_URL}?${params.toString()}`);
+        const data = await response.json();
+
+        if (data.ok) {
+          await logOutput(elementId, `✓ Project created!\n\nProject ID: ${data.projectId}\n\nFull response:\n${JSON.stringify(data, null, 2)}`);
+        } else {
+          await logOutput(elementId, `✗ Error: ${data.error}\n\nFull response:\n${JSON.stringify(data, null, 2)}`, true);
+        }
+      } catch (error) {
+        await logOutput(elementId, `✗ Request failed: ${error.message}`, true);
+      }
+    }
+
+    async function testSaveProject() {
+      const elementId = 'save-output';
+      try {
+        document.getElementById(elementId).textContent = 'Saving project data...';
+        document.getElementById(elementId).className = 'output loading';
+
+        const assessment = {
+          domains: {
+            d1: { rating: 4, responses: ['Test response 1', 'Test response 2', 'Test response 3'], evidenceSummary: 'Test evidence summary for equity and justice domain', evidenceType: 'Interviews', confidence: 'High' }
+          },
+          integrity: { washingRisk: 'Medium', powerRisk: 'Low' }
+        };
+
+        const params = new URLSearchParams({
+          action: 'saveProject',
+          projectId: 'proj_' + Date.now(),
+          name: 'Saved Project ' + new Date().toLocaleTimeString(),
+          funder: 'Test Funder',
+          country: 'Test Country',
+          sector: 'Health',
+          assessorName: 'Test Assessor',
+          assessmentJson: JSON.stringify(assessment),
+          integrityJson: JSON.stringify(assessment.integrity),
+          commentsJson: JSON.stringify([])
+        });
+
+        const response = await fetch(`${SHEET_API_URL}?${params.toString()}`);
+        const data = await response.json();
+
+        if (data.ok) {
+          await logOutput(elementId, `✓ Project saved!\n\nProject data has been written to the sheet.\n\nFull response:\n${JSON.stringify(data, null, 2)}`);
+        } else {
+          await logOutput(elementId, `✗ Error: ${data.error}\n\nFull response:\n${JSON.stringify(data, null, 2)}`, true);
+        }
+      } catch (error) {
+        await logOutput(elementId, `✗ Request failed: ${error.message}`, true);
+      }
+    }
+
+    async function testFullFlow() {
+      const elementId = 'flow-output';
+      try {
+        document.getElementById(elementId).textContent = 'Starting full flow test...\n\n[1/3] Creating user...';
+        document.getElementById(elementId).className = 'output loading';
+
+        // Step 1: Create user
+        const username = 'flowtest_' + Date.now();
+        const userParams = new URLSearchParams({
+          action: 'createUser',
+          username: username,
+          password: 'Test123!',
+          fullName: 'Flow Test User',
+          email: 'flow_' + Date.now() + '@solidaris.test',
+          role: 'owner'
+        });
+
+        const userResponse = await fetch(`${SHEET_API_URL}?${userParams.toString()}`);
+        const userData = await userResponse.json();
+
+        if (!userData.ok) throw new Error('User creation failed: ' + userData.error);
+
+        document.getElementById(elementId).textContent += `\n✓ User created: ${userData.user?.username}`;
+        document.getElementById(elementId).textContent += `\n\n[2/3] Creating project...`;
+
+        // Step 2: Create project
+        const projectId = 'proj_flow_' + Date.now();
+        const projectParams = new URLSearchParams({
+          action: 'createProject',
+          name: 'Flow Test Project',
+          funder: 'Integration Test Funder',
+          country: 'Integration Test Country',
+          sector: 'Health',
+          ownerId: userData.user?.id
+        });
+
+        const projectResponse = await fetch(`${SHEET_API_URL}?${projectParams.toString()}`);
+        const projectData = await projectResponse.json();
+
+        if (!projectData.ok) throw new Error('Project creation failed: ' + projectData.error);
+
+        document.getElementById(elementId).textContent += `\n✓ Project created: ${projectData.projectId}`;
+        document.getElementById(elementId).textContent += `\n\n[3/3] Saving project assessment...`;
+
+        // Step 3: Save project data
+        const assessment = {
+          domains: {
+            d1: { rating: 4, responses: ['Strong equity focus', 'Resource allocation is needs-based', 'Addresses root causes'], evidenceSummary: 'Community testimonies and budget analysis show commitment to underserved populations', evidenceType: 'Interviews', confidence: 'High' },
+            d2: { rating: 3, responses: ['Moderate collective outcomes', 'Some open access provisions', 'Public system strengthening evident'], evidenceSummary: 'Mixed approach - some public goods shared, but organizational interests also present', evidenceType: 'Documents', confidence: 'Medium' }
+          },
+          integrity: { washingRisk: 'Low', powerRisk: 'Medium', alignmentContradiction: 'Goals align well', burdenBearer: 'Community shares implementation burden', voiceReality: 'Genuine community voice in decisions' }
+        };
+
+        const saveParams = new URLSearchParams({
+          action: 'saveProject',
+          projectId: projectData.projectId,
+          name: 'Flow Test Project',
+          funder: 'Integration Test Funder',
+          country: 'Integration Test Country',
+          sector: 'Health',
+          assessorName: 'Integration Test User',
+          assessmentJson: JSON.stringify(assessment),
+          integrityJson: JSON.stringify(assessment.integrity),
+          commentsJson: JSON.stringify([{ author: 'System', text: 'Integration test comment', timestamp: new Date().toISOString() }])
+        });
+
+        const saveResponse = await fetch(`${SHEET_API_URL}?${saveParams.toString()}`);
+        const saveData = await saveResponse.json();
+
+        if (!saveData.ok) throw new Error('Project save failed: ' + saveData.error);
+
+        await logOutput(elementId, `✓ Full flow completed successfully!\n\n[Summary]\nUser: ${userData.user?.username}\nProject: ${projectData.projectId}\nAssessment Status: Saved\n\nThe data should now be visible in your Google Sheet.`);
+      } catch (error) {
+        await logOutput(elementId, `✗ Flow failed: ${error.message}`, true);
+      }
+    }
+  </script>
+
+  <div class="card test-section">
+    <h2 id="update-script">🔧 Update Your Google Apps Script (If Needed)</h2>
+    <p>If you're seeing errors like "Project not found" or "Cannot read properties of undefined", follow these steps:</p>
+    
+    <h3 style="font-size: 16px; margin-top: 20px;">Step 1: Open Apps Script Editor</h3>
+    <ol style="line-height: 1.8;">
+      <li>Go to your Google Sheet</li>
+      <li>Click <strong>Tools</strong> → <strong>Script editor</strong></li>
+    </ol>
+
+    <h3 style="font-size: 16px; margin-top: 20px;">Step 2: Replace the saveProjectFromParams Function</h3>
+    <p>Find the <code>saveProjectFromParams</code> function and replace it with this corrected version:</p>
+    <div style="background: #f5f5f5; border: 1px solid #ddd; border-radius: 4px; padding: 15px; margin-top: 10px; font-family: 'Courier New', monospace; font-size: 12px; overflow-x: auto;">
+      <pre>function saveProjectFromParams(params) {
+  const projectId = String(params.projectId || '').trim();
+  const sheet = getSheet('projects');
+  const rows = sheet.getDataRange().getValues();
+  if (!rows.length) return { ok: false, error: 'No project rows found' };
+
+  const headers = rows[0];
+  const rowIndex = rows.findIndex((row) => row[0] === projectId);
+  if (rowIndex === -1) return { ok: false, error: 'Project not found' };
+
+  const data = [
+    projectId,
+    String(params.name || '').trim(),
+    String(params.funder || '').trim(),
+    String(params.country || '').trim(),
+    String(params.sector || '').trim(),
+    String(params.assessorName || '').trim(),
+    rows[rowIndex][6] || new Date().toISOString(),
+    rows[rowIndex][7] || '',
+    rows[rowIndex][8] || '',
+    params.assessmentJson || '{}',
+    params.integrityJson || '{}',
+    rows[rowIndex][11] || '',
+    rows[rowIndex][12] || '',
+    rows[rowIndex][13] || 'active',
+    params.commentsJson || '[]'
+  ];
+
+  sheet.getRange(rowIndex + 1, 1, 1, headers.length).setValues([data]);
+  return { ok: true, projectId };
+}</pre>
+    </div>
+    <p style="margin-top: 10px; color: #666; font-size: 13px;"><strong>Key fix:</strong> Changed <code>rows[rowIndex + 1]</code> to <code>rows[rowIndex]</code> (line 13-21) and <code>rowIndex + 2</code> to <code>rowIndex + 1</code> (last line).</p>
+
+    <h3 style="font-size: 16px; margin-top: 20px;">Step 3: Deploy</h3>
+    <ol style="line-height: 1.8;">
+      <li>Click <strong>Deploy</strong> → <strong>New deployment</strong></li>
+      <li>Type: <strong>Web app</strong></li>
+      <li>Execute as: <strong>Your Google Account</strong></li>
+      <li>Who has access: <strong>Anyone</strong></li>
+      <li>Click <strong>Deploy</strong></li>
+    </ol>
+
+    <h3 style="font-size: 16px; margin-top: 20px;">Step 4: Test Again</h3>
+    <p>Once deployed, go back to this page and run the tests again. The errors should be fixed!</p>
+  </div>
