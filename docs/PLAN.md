@@ -1,6 +1,6 @@
 # SOLIDARIS — Re-engineering Plan
 
-**Status:** Phase 0 · questions resolved (see §8); waiting for Paul's sign-off and 5 actions only he can take · **Source of truth:** `docs/SOLIDARIS_REENGINEERING_BRIEF.md`, then the SRS (`research/SOLIDARIS.docx`) where the brief is silent · **Findings:** `docs/AUDIT.md`
+**Status:** Phase 1 (foundation) built and tested locally; migrations not yet applied to the hosted project (see §9) · **Source of truth:** `docs/SOLIDARIS_REENGINEERING_BRIEF.md`, then the SRS (`research/SOLIDARIS.docx`) where the brief is silent · **Findings:** `docs/AUDIT.md`
 
 This plan is updated at the start and end of each phase. In this document:
 - "§n" refers to a section of the brief.
@@ -533,3 +533,66 @@ The libraries in §4.1 are assumed approved. **These additional ones are needed:
 D-14, D-21 and D-22 are settled.
 
 Everything marked 🟡 goes ahead as described unless you say otherwise.
+
+---
+
+## 9. Phase log
+
+### Phase 1: Foundation (2026-10-06)
+
+**Done:**
+- **Repo moves:** the old app, prototypes and Sheet docs are now in `legacy/`.
+- **Tooling:** TypeScript (strict), ESLint, Prettier, Vitest, Playwright with axe. Node 24.
+- **Schema:** 8 migrations in `supabase/migrations/`:
+  - enums;
+  - framework and people tables;
+  - every content table from §5;
+  - the hash-chained audit log, plus invariant triggers (2, 3, 5, 9, PI uniqueness, final gate decisions, automatic "No" protection);
+  - row-level security on every table, default deny, no access for anonymous users;
+  - workflow RPCs (`create_project`, `start_scoping`, `start/submit/reopen/withdraw_assessment`, `save_gate_review`, `record_gate_verification`, `decide_gate`, `advance_stage`, `start_reassessment`, `record_consent`, `assessment_progress`, `project_member_profiles`);
+  - a private `evidence` storage bucket;
+  - framework v1 seeded from Appendix A and B and published.
+- **Domain layer:** `src/domain/` covers gates, workflow, completeness, divergence and the no-composite guard. One JSON fixture is shared by the TypeScript and SQL versions of the suggestion rule.
+- **Front end:**
+  - design tokens and UI kit (Button with a disabled reason, TextField, Checkbox, Alert, EmptyState, Card, Chip, RatingButtons, JourneyBar);
+  - i18n layer;
+  - routing for GitHub Pages;
+  - Supabase Auth: sign-in; sign-up as a member with SRS §5.5 fields and consent; email confirmation; forgot and reset password; consent screen for OAuth users; 30-minute idle sign-out;
+  - profile page;
+  - Home page with a placeholder "What to do next" section (its content arrives in Phase 2);
+  - legacy localStorage export page behind `VITE_FLAG_LEGACY_EXPORT`, with passwords stripped.
+- **CI** (`.github/workflows/ci.yml`):
+  - lint, typecheck, unit and PGlite database tests, build, and the bundle budget check;
+  - end-to-end tests with axe at desktop and 360px widths;
+  - migrations and pgTAP on a real local Supabase stack.
+- **Deploy:** runs only after CI passes on `main`.
+
+**Test results at the end of Phase 1:**
+- 38 unit/component tests
+- 39 database tests
+- 10 end-to-end checks
+- type-check clean
+- lint: 0 errors
+- initial JS: 157 KB gzipped (budget 250 KB)
+
+**Decisions taken during Phase 1:**
+
+| # | Decision | Status |
+|---|---|---|
+| D-26 | Database tests run locally in **PGlite** (Postgres compiled to WebAssembly) with a small Supabase shim (`tests/db/supabase-shim.sql`), approved by Paul. CI also runs the migrations on the real Supabase stack. | ✅ |
+| D-27 | Migrations are applied to the hosted project with the Supabase CLI using Paul's personal access token, stored as an environment variable on his PC (approved). | ✅ |
+| D-28 | `.env.production` (Supabase URL and publishable key) is committed, because these values are public by design; no repo variables are needed. The service key never enters the repo or the browser. | ✅ |
+| D-29 | Gate criteria with `auto_check_key` are stored now. Their evaluators arrive with each feature phase (G0/G1 in Phase 2, and so on), because they need the feature tables to have data. | 🟡 |
+| D-30 | Users who have not consented cannot reach any project data. `has_project_role()` requires consent, so this is enforced in the database, not only in the UI. | ✅ |
+| D-31 | The G3 criterion text includes the PI withdrawal route (D-22). Appendix B wording is otherwise unchanged. | ✅ |
+
+**Still open for Phase 1:**
+1. **Apply the migrations to the hosted project.** Needs `SUPABASE_ACCESS_TOKEN`. Then run `npx supabase link --project-ref emtowdhobspmmtypulpi` and `npm run db:push`.
+2. **Set Auth in the Supabase dashboard:**
+   - Site URL: `https://ongboche.github.io/Solidaris-1.0/`
+   - Redirect URLs: `https://ongboche.github.io/Solidaris-1.0/**` and `http://localhost:5173/**`
+   - Minimum password length: 10
+   - Email confirmations: on
+   - This can be done through the Management API once the token exists.
+3. **Confirm the project's region.** The privacy notice says data is stored in the United Kingdom (D-9), so this must be checked before launch.
+4. **Seed the first platform admin.** After you sign up, one SQL update sets your `platform_role`.
