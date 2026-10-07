@@ -764,3 +764,8 @@ Built in one pass at Paul's request so Phases 2–5 can be pushed and merged tog
 | # | Decision | Status |
 |---|---|---|
 | D-51 | **Email confirmation is switched off** (`mailer_autoconfirm = true`) while the Gmail SMTP sender is failing. Decided by Paul (Option A). New users can sign up and sign in without email. "Forgot password" does not work until email works: an administrator resets passwords in Supabase → Authentication → Users. Verified with a real sign-up, sign-in and profile check through the public API; the test account was then deleted. **Switch confirmation back on once email works.** | 🟡 Temporary |
+### Workflow change: assessment before the evidence review (2026-10-07)
+
+| # | Decision | Status |
+|---|---|---|
+| D-52 | **Assessment comes before the evidence review** (decided by Paul, as the PI and research lead). The stage order is now scoping (G0) → context (G1) → **assessment (G2)** → **evidence review (G3)** → integrity (G4) → … <br>"You cannot proceed without evidence" is enforced twice:<br>• **Invariant 3:** no rating can be completed without linked evidence or a documented gap.<br>• **The evidence-review gate (G3):** it is reviewer-verified, and the PI cannot record Go while evidence is insufficient without a written override, which is flagged in the audit log.<br>Assessor independence (invariant 4) now ends at G2.<br>**Deviation from brief §6.1 and Appendix B:** the brief puts evidence (G2) before assessment (G3). The SRS overview (§4.10) already put assessment before evidence upload. Framework v1's G2 and G3 criteria were swapped in place by migration `20261009000100`. That migration refuses to run if any G2 or G3 review exists, so no past decision changes meaning (invariant 9). | ✅ |

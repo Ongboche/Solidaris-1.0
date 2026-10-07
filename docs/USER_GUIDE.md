@@ -51,8 +51,8 @@ Each project page shows a bar from **G0** to **G8**. A project moves to the next
 |---|---|---|
 | G0 | Scoping: the decision the profile informs, and the human-rights screen | PI |
 | G1 | Context, actor map, team, conflicts of interest, community-voice plan | PI |
-| G2 | Evidence for every domain (or documented gaps) | PI, after reviewer verification |
-| G3 | Every assessor has submitted | PI |
+| G2 | Assessment: every assessor has submitted, each rating backed by evidence or a gap | PI |
+| G3 | Evidence review: evidence or gaps for every domain, several types, community evidence | PI, after reviewer verification |
 | G4 | Integrity review, risk flags, solidarity type | Reviewer |
 | G5 | Divergent ratings discussed; consensus or dissent recorded | PI |
 | G6 | Quality assurance and member-check | PI, after reviewer verification |
@@ -70,18 +70,24 @@ Each project page shows a bar from **G0** to **G8**. A project moves to the next
 4. **Scoping tab:** record the decision, the decision-maker, the decision window and the human-rights screen. Then open **Gate G0**.
 5. **Context tab:** fill in financing, governance, target population and the community-voice plan, and add at least one funder, implementer, community actor and government actor. Then open **Gate G1**.
 
-### Assessors: declare conflicts, add evidence, assess (G1 → G3)
+### Assessors: declare conflicts, assess with evidence (G1 → G2), then the evidence review (G3)
+Assessment comes first, but **you cannot proceed without evidence**: no rating can be completed without linked evidence or a documented gap, and the project cannot pass the evidence review (G3) until the evidence base is strong enough.
+
 1. **Team tab:** declare any conflicts of interest.
-2. **Evidence tab:**
-   - Upload files (up to 25 MB, stored privately) or add links, and tag each to the domains it informs.
-   - Where evidence is missing, **log a gap** and say how it affects confidence.
-3. **Assessment tab:** start your assessment. For each domain:
+2. **Assessment tab:** start your assessment. For each domain:
    - read the prompts and "What good evidence looks like";
-   - in the **evidence panel**, link evidence or log a gap;
+   - in the **evidence panel**, link existing evidence, add new evidence by link, or log a gap. The **Evidence tab** is open throughout for file uploads (up to 25 MB, stored privately), tagged to the domains each item informs;
    - choose a rating (1–5), write a narrative of at least 50 characters, and pick your confidence level. Confidence is about the *strength of the evidence*.
    - Click **Mark this domain complete**. If something is missing, the button tells you what.
-4. **Integrity review step:** rate all four risk flags (explain every High) and choose a primary solidarity type.
-5. **Review and submit:** confirm the work is independent, then submit. It is then locked. Only the PI can reopen it, with a reason.
+3. **Integrity review step:** rate all four risk flags (explain every High) and choose a primary solidarity type.
+4. **Review and submit:** confirm the work is independent, then submit. It is then locked. Only the PI can reopen it, with a reason.
+5. **The PI decides G2** once everyone has submitted. Ratings stay private until then.
+6. **Evidence review (G3):** the team fills remaining evidence gaps. G3 checks:
+   - every domain has evidence or a documented gap;
+   - there are at least two evidence types;
+   - there is community-origin evidence for D5 and D8.
+
+   A **reviewer** verifies, then the PI decides.
 
 ### Team: integrity and deliberation (G4 → G5)
 - **Integrity tab:** consolidate one project-level review from the assessors' reviews. The reviewer records a quality check and decides G4.

@@ -71,10 +71,10 @@ describe('nextActions (brief §9.2)', () => {
     expect(nextActions([project({ status: 'closed' })], [])).toEqual([])
   })
 
-  it('asks the reviewer to verify G2 and the KT lead to review G7', () => {
+  it('asks the reviewer to verify the evidence review (G3) and the KT lead to review G7', () => {
     expect(nextActions([project({ status: 'evidence', myRoles: ['reviewer'] })], [])[0]).toMatchObject({
       kind: 'verify_gate',
-      gate: 'G2',
+      gate: 'G3',
     })
     expect(nextActions([project({ status: 'uptake', myRoles: ['kt_lead'] })], [])[0]).toMatchObject({
       kind: 'review_gate',
