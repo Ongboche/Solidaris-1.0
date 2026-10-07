@@ -599,3 +599,42 @@ Everything marked 🟡 goes ahead as described unless you say otherwise.
    - email confirmation required.
 3. ~~Confirm the project's region.~~ **`eu-west-2` (London), Postgres 17**, so the notice's "United Kingdom" is accurate.
 4. **Seed the first platform admin.** After Paul signs up, one SQL update sets his `platform_role`.
+### Phase 2: Platform, scoping and context (2026-10-07)
+
+**Done:**
+- **Database** (migration `20261007000100`):
+  - Invitations: `invite_member` returns a one-time link token, and only its SHA-256 hash is stored. They can be accepted through the link or from the invitee's home page when the verified email matches (`accept_invitation`, `accept_invitation_by_id`, `my_invitations`, `invitation_preview`, `revoke_invitation`).
+  - `remove_member`: the PI row stays protected, and assessors who have started an assessment cannot be removed.
+  - Automatic G0/G1 checks (`evaluate_auto_check`, `apply_auto_checks`, `refresh_gate_review`):
+    - G0: subject type, decision record, human-rights screen.
+    - G1: context complete, all four actor categories, COI from all assessors, ≥2 assessors or the single-assessor flag, community-voice plan.
+    - All gates: conditions carried over from earlier gates (D-17).
+  - Every suggestion refresh re-runs the automatic checks first. An automatic answer always wins over a manual one (§6.3).
+- **Front end:**
+  - Home page with "What to do next", built from the pure `nextActions()` (§9.2), and a project list showing journey bars.
+  - New-project screen (the subject router), with the §8 notice for subject types whose prompts are not ready yet.
+  - Project workspace with tabs and a clickable journey bar (§9.1).
+  - Team: invite by link, withdraw, remove, COI declaration, single-assessor flag.
+  - Invite acceptance page.
+  - T1 scoping (decision record and human-rights screen) and T2 context (profile and actor map), both with autosave, retry and a local backup (§9.5).
+  - Generic gate review screen (§9.10): automatic ✓/✗ with evidence, manual Yes/Partial/No/N/A with notes, the suggestion with reasons, the owner's decision with conditions or justification, a reviewer verification step for G2/G6, and a read-only history of past attempts.
+  - Glossary tooltips (§9.6).
+- **Live database:** the migration is applied to `solidaris-dev`, and all 10 new functions are present.
+
+**Test results at the end of Phase 2:**
+- 103 unit and database tests (13 new database tests for Phase 2)
+- 12 end-to-end checks with axe at desktop and 360px
+- type-check clean
+- lint: 0 errors
+- initial JS: 163 KB gzipped
+
+**Decisions taken during Phase 2:**
+
+| # | Decision | Status |
+|---|---|---|
+| D-32 | **Email: Supabase's built-in sender for now** (Paul, 2026-10-07). It delivers only to members of the Supabase organisation, so outside testers cannot receive confirmation or reset emails until Gmail SMTP (D-14) is configured. Sign-up shows a plain message when this happens. | 🟡 Until SMTP is set |
+| D-33 | **Invitations work without email:** the PI copies a one-time link (30-day expiry, bound to the invitee's email), and invitees with accounts also see it on their home page. This also suits slow connections and message apps. | ✅ |
+| D-34 | The G1 automatic check "context profile complete" requires financing, governance and target population. The community-voice plan is its own criterion. | 🟡 |
+| D-35 | **Tests updated with care:** the Phase 1 gate tests now record a real decision record before G0. Previously they answered every criterion "yes" by hand, which automatic checks now correctly override. No invariant was weakened. | ✅ |
+
+**Not yet covered:** an end-to-end journey with signed-in users. It needs seeded test accounts and a mailer, and is planned for the full G0–G8 Playwright journey (§14) once SMTP is configured.
