@@ -83,6 +83,17 @@ async function completeAll(t: Team, assessor: string) {
   ])
   await asUser(db, assessor, async (tx) => {
     for (const r of ratings) await completeRating(tx, t.project, r.id)
+    // PLAN D-7: the assessor's own integrity review comes before submission.
+    const [rev] = (
+      await tx.query<{ id: string }>(
+        `insert into integrity_reviews (project_id, scope, assessment_id, primary_type) values ($1, 'assessor', $2, 'substantive') returning id`,
+        [t.project, assessment],
+      )
+    ).rows
+    await tx.query(
+      `insert into integrity_flags (integrity_review_id, flag, level) select $1, f, 'low' from unnest(enum_range(null::risk_flag)) f`,
+      [rev!.id],
+    )
   })
   return assessment
 }
@@ -296,6 +307,17 @@ describe('invariant 9: versioned framework', () => {
 })
 
 describe('gates (brief §6, invariant 7)', () => {
+  /** Records a complete T1 decision record so the G0 automatic checks pass. */
+  async function fillScoping(t: Team) {
+    await queryAs(
+      db,
+      t.pi,
+      `insert into decision_records (project_id, decision_text, decision_maker_name, window_start, window_end, hr_screen_result)
+       values ($1, 'Renew the equity fund for 2027–2029', 'Ministry of Health board', '2026-11-01', '2027-03-31', 'pass')`,
+      [t.project],
+    )
+  }
+
   async function answerAll(user: string, project: string, gate: string, answer = 'yes') {
     const criteria = await asAdmin<{ id: string }>(db, `select id from gate_criteria where gate = $1`, [gate])
     const answers = criteria.map((c) => ({ criterion_id: c.id, answer, note: answer === 'na' ? 'n/a' : null }))
@@ -318,6 +340,7 @@ describe('gates (brief §6, invariant 7)', () => {
 
   it('advances on go, keeps status on hold, and never auto-advances', async () => {
     const t = await makeTeam('scoping')
+    await fillScoping(t)
     await answerAll(t.pi, t.project, 'G0')
     const [status] = await asAdmin<{ status: string }>(db, `select status from assessment_projects where id = $1`, [t.project])
     expect(status?.status).toBe('scoping') // a complete checklist alone changes nothing
@@ -335,6 +358,7 @@ describe('gates (brief §6, invariant 7)', () => {
 
   it('needs conditions for conditional go, and turns them into action items', async () => {
     const t = await makeTeam('scoping')
+    await fillScoping(t)
     await answerAll(t.pi, t.project, 'G0', 'partial')
     await expect(queryAs(db, t.pi, `select public.decide_gate($1, 'G0', 'conditional_go')`, [t.project])).rejects.toThrow(
       /conditions/,
@@ -370,6 +394,7 @@ describe('gates (brief §6, invariant 7)', () => {
 
   it('stops the project at any gate with a reason (PLAN D-5)', async () => {
     const t = await makeTeam('scoping')
+    await fillScoping(t)
     await answerAll(t.pi, t.project, 'G0')
     await queryAs(db, t.pi, `select public.decide_gate($1, 'G0', 'stop_redirect', null, 'Escalated: human-rights concern')`, [
       t.project,
@@ -384,6 +409,24 @@ describe('gates (brief §6, invariant 7)', () => {
 
   it('makes G2 wait for reviewer verification (PLAN D-12)', async () => {
     const t = await makeTeam('evidence')
+    // Evidence that satisfies the G2 automatic checks: all domains, two types, community origin for D5/D8.
+    await asUser(db, t.a1, async (tx) => {
+      for (const [type, origin, codes] of [
+        ['document', 'government', ['D1', 'D2', 'D3', 'D4', 'D6', 'D7', 'D9']],
+        ['fgd', 'community', ['D5', 'D8']],
+      ] as const) {
+        const [ev] = (
+          await tx.query<{ id: string }>(
+            `insert into evidence_items (project_id, title, type, url, origin) values ($1, 'Source', $2, 'https://example.org', $3) returning id`,
+            [t.project, type, origin],
+          )
+        ).rows
+        await tx.query(`insert into evidence_domain_links (evidence_id, domain_id) select $1, id from domains where code = any($2)`, [
+          ev!.id,
+          codes,
+        ])
+      }
+    })
     await answerAll(t.pi, t.project, 'G2')
     await expect(queryAs(db, t.pi, `select public.decide_gate($1, 'G2', 'go')`, [t.project])).rejects.toThrow(/reviewer must verify/)
     await queryAs(db, t.reviewer, `select public.record_gate_verification($1, 'G2', 'verified', null)`, [t.project])
@@ -393,6 +436,7 @@ describe('gates (brief §6, invariant 7)', () => {
 
   it('cannot change a decided gate review', async () => {
     const t = await makeTeam('scoping')
+    await fillScoping(t)
     await answerAll(t.pi, t.project, 'G0')
     await queryAs(db, t.pi, `select public.decide_gate($1, 'G0', 'go')`, [t.project])
     await expect(asAdmin(db, `update gate_reviews set owner_decision = 'hold' where project_id = $1`, [t.project])).rejects.toThrow(

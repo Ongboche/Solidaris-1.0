@@ -6,6 +6,8 @@ export function authErrorMessage(error: { message?: string; status?: number; cod
   const text = `${error.code ?? ''} ${error.message ?? ''}`.toLowerCase()
   if (text.includes('invalid login') || text.includes('invalid_credentials')) return t('auth.invalidCredentials')
   if (text.includes('email not confirmed') || text.includes('email_not_confirmed')) return t('auth.emailNotConfirmed')
+  // Supabase's built-in mailer only reaches organisation members (pilot setup, PLAN D-32).
+  if (text.includes('not authorized') || text.includes('email_address_not_authorized')) return t('auth.emailNotDeliverable')
   if (error.status === 429 || text.includes('rate limit') || text.includes('over_')) return t('auth.rateLimited')
   if (text.includes('failed to fetch') || text.includes('network')) return t('errors.network')
   return error.message ?? t('errors.generic')

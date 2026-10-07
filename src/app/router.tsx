@@ -20,6 +20,20 @@ const CheckEmailPage = lazy(() => import('../features/auth/PasswordPages').then(
 const HomePage = lazy(() => import('../features/platform/HomePage'))
 const ProfilePage = lazy(() => import('../features/platform/ProfilePage'))
 const LegacyExportPage = lazy(() => import('../features/platform/LegacyExportPage'))
+const NewProjectPage = lazy(() => import('../features/platform/NewProjectPage'))
+const ProjectLayout = lazy(() => import('../features/project/ProjectLayout'))
+const OverviewPage = lazy(() => import('../features/project/OverviewPage'))
+const TeamPage = lazy(() => import('../features/project/TeamPage'))
+const ScopingPage = lazy(() => import('../features/project/ScopingPage'))
+const ContextPage = lazy(() => import('../features/project/ContextPage'))
+const InvitePage = lazy(() => import('../features/project/InvitePage'))
+const GateReviewPage = lazy(() => import('../features/gates/GateReviewPage'))
+const EvidencePage = lazy(() => import('../features/evidence/EvidencePage'))
+const AssessmentPage = lazy(() => import('../features/assessment/AssessmentPage'))
+const IntegrityPage = lazy(() => import('../features/integrity/IntegrityPage'))
+const DeliberationPage = lazy(() => import('../features/deliberation/DeliberationPage'))
+const ProfileViewPage = lazy(() => import('../features/profile/ProfilePage'))
+const ReportPage = lazy(() => import('../features/report/ReportPage'))
 
 function Loading({ children }: { children: ReactNode }) {
   const { t } = useTranslation()
@@ -61,6 +75,25 @@ export const router = createBrowserRouter(
               children: [
                 { index: true, element: page(<HomePage />) },
                 { path: 'profile', element: page(<ProfilePage />) },
+                { path: 'invite/:token', element: page(<InvitePage />) },
+                { path: 'projects/new', element: page(<NewProjectPage />) },
+                {
+                  path: 'projects/:projectId',
+                  element: page(<ProjectLayout />),
+                  children: [
+                    { index: true, element: page(<OverviewPage />) },
+                    { path: 'team', element: page(<TeamPage />) },
+                    { path: 'scoping', element: page(<ScopingPage />) },
+                    { path: 'context', element: page(<ContextPage />) },
+                    { path: 'evidence', element: page(<EvidencePage />) },
+                    { path: 'assessment', element: page(<AssessmentPage />) },
+                    { path: 'integrity', element: page(<IntegrityPage />) },
+                    { path: 'deliberation', element: page(<DeliberationPage />) },
+                    { path: 'profile', element: page(<ProfileViewPage />) },
+                    { path: 'report', element: page(<ReportPage />) },
+                    { path: 'gates/:gate', element: page(<GateReviewPage />) },
+                  ],
+                },
               ],
             },
           ],
