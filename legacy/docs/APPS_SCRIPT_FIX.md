@@ -69,11 +69,11 @@ Replace with: `sheet.getRange(rowIndex + 1,`
 ### Step 5: Update Configuration (If URL Changed)
 If you got a new deployment URL, update:
 - `.env` file: `VITE_SHEET_API_URL=<new-url>`
-- `.env.example` file (same URL)
-- `solidaris_chrome.html` line with `SHEET_API_URL` (search for it)
+- GitHub repo variable `VITE_SHEET_API_URL` (Settings → Secrets and variables → Actions → Variables), used by the Pages build
+- `legacy/prototypes/solidaris_chrome.html` line with `SHEET_API_URL` (search for it)
 
 ### Step 6: Test Again
-Go back to [test-sheet-api.html](test-sheet-api.html) and run the **Full Data Flow Test** again.
+Go back to [test-sheet-api.html](../prototypes/test-sheet-api.html) and run the **Full Data Flow Test** again.
 
 ## Expected Success
 After the fix, you should see:

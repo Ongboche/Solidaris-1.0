@@ -1,7 +1,10 @@
 name: Deploy to GitHub Pages
 
+# Deploys only after CI passes on main.
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
 
@@ -10,26 +13,28 @@ permissions:
   pages: write
   id-token: write
 
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
 jobs:
   build:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
         with:
-          node-version: 20
-
-      - name: Install dependencies
-        run: npm install
-
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
       - name: Build app
         run: npm run build
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        env:
+          PAGES_BASE: /Solidaris-1.0/
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist
 

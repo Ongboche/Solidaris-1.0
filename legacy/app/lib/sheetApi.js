@@ -1,6 +1,4 @@
-const DEFAULT_SHEET_API_URL = import.meta.env.VITE_SHEET_API_URL || "https://script.google.com/macros/s/AKfycbx514VvonoizSv8HjP-pQekMRzCaWpU4PTcoPehGUkOyzegg1i7FefqZiiqzfXa85Q/exec";
-
-export const SHEET_API_URL = DEFAULT_SHEET_API_URL;
+export const SHEET_API_URL = import.meta.env.VITE_SHEET_API_URL || "";
 
 export function normalizeProject(project) {
   if (!project) return null;
