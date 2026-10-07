@@ -7,6 +7,7 @@ import type { Gate, ProjectRole } from '../../domain/types'
 import { Alert, Chip, Spinner } from '../../ui/Feedback'
 import { JourneyBar } from '../../ui/JourneyBar'
 import { gateProgress } from './snapshot'
+import { flags } from '../../lib/flags'
 
 export interface ProjectContextValue {
   project: Bundle
@@ -62,6 +63,10 @@ export default function ProjectLayout() {
           { to: 'report', label: t('project.tabs.report') },
         ]
       : []),
+    // T7, T9, T10 are proposals pending the team's review (brief §16.4): behind flags.
+    ...(flags.uptake && passed.includes('G6') ? [{ to: 'uptake', label: t('project.tabs.uptake') }] : []),
+    ...(flags.signals && project.status !== 'draft' ? [{ to: 'signals', label: t('project.tabs.signals') }] : []),
+    ...(flags.learning && passed.includes('G7') ? [{ to: 'learning', label: t('project.tabs.learning') }] : []),
     ...(currentGate ? [{ to: `gates/${currentGate}`, label: t('project.tabs.gate', { gate: currentGate }) }] : []),
   ]
 

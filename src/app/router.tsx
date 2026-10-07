@@ -34,6 +34,15 @@ const IntegrityPage = lazy(() => import('../features/integrity/IntegrityPage'))
 const DeliberationPage = lazy(() => import('../features/deliberation/DeliberationPage'))
 const ProfileViewPage = lazy(() => import('../features/profile/ProfilePage'))
 const ReportPage = lazy(() => import('../features/report/ReportPage'))
+const UptakePage = lazy(() => import('../features/uptake/UptakePage'))
+const SignalsPage = lazy(() => import('../features/signals/SignalsPage'))
+const LearningPage = lazy(() => import('../features/learning/LearningPage'))
+const AdminLayout = lazy(() => import('../features/admin/AdminLayout'))
+const MeDashboardPage = lazy(() => import('../features/admin/MeDashboardPage'))
+const UsersPage = lazy(() => import('../features/admin/UsersPage'))
+const InstitutionsPage = lazy(() => import('../features/admin/InstitutionsPage'))
+const FrameworkPage = lazy(() => import('../features/admin/FrameworkPage'))
+const AuditPage = lazy(() => import('../features/admin/AuditPage'))
 
 function Loading({ children }: { children: ReactNode }) {
   const { t } = useTranslation()
@@ -78,6 +87,17 @@ export const router = createBrowserRouter(
                 { path: 'invite/:token', element: page(<InvitePage />) },
                 { path: 'projects/new', element: page(<NewProjectPage />) },
                 {
+                  path: 'admin',
+                  element: page(<AdminLayout />),
+                  children: [
+                    { index: true, element: page(<MeDashboardPage />) },
+                    { path: 'users', element: page(<UsersPage />) },
+                    { path: 'institutions', element: page(<InstitutionsPage />) },
+                    { path: 'framework', element: page(<FrameworkPage />) },
+                    { path: 'audit', element: page(<AuditPage />) },
+                  ],
+                },
+                {
                   path: 'projects/:projectId',
                   element: page(<ProjectLayout />),
                   children: [
@@ -91,6 +111,9 @@ export const router = createBrowserRouter(
                     { path: 'deliberation', element: page(<DeliberationPage />) },
                     { path: 'profile', element: page(<ProfileViewPage />) },
                     { path: 'report', element: page(<ReportPage />) },
+                    ...(flags.uptake ? [{ path: 'uptake', element: page(<UptakePage />) }] : []),
+                    ...(flags.signals ? [{ path: 'signals', element: page(<SignalsPage />) }] : []),
+                    ...(flags.learning ? [{ path: 'learning', element: page(<LearningPage />) }] : []),
                     { path: 'gates/:gate', element: page(<GateReviewPage />) },
                   ],
                 },
