@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   ResponsiveContainer, Tooltip
@@ -43,6 +43,7 @@ const CONFIDENCE_LEVELS = ["Low", "Medium", "High"];
 const EVIDENCE_TYPES = ["Interviews", "Observations", "Documents", "Financial records", "Mixed"];
 const RATING_LABELS = { 0: "Not scored", 1: "Emerging", 2: "Partial", 3: "Developing", 4: "Consistent", 5: "Exemplary" };
 const TEAM_EXPORT_NAME = "solidaris-team-report";
+const SHEET_SYNC_DELAY_MS = 1500;
 
 function average(values) {
   if (!values.length) return 0;
@@ -167,6 +168,9 @@ export default function App() {
   const [domainIndex, setDomainIndex] = useState(0);
   const [reviewDraft, setReviewDraft] = useState("");
   const [saveState, setSaveState] = useState("idle");
+  const latestDb = useRef(db);
+  const pendingSyncIds = useRef(new Set());
+  const syncTimer = useRef(null);
 
   const currentUser = useMemo(
     () => db.users.find((user) => user.id === db.sessionUserId) || null,
@@ -189,18 +193,32 @@ export default function App() {
     }
   };
 
+  // Queue changed projects and sync them to the sheet once edits pause
+  const scheduleSheetSync = (prevDb, nextDb) => {
+    if (!SHEET_API_URL || !nextDb.projects) return;
+    const prevById = new Map((prevDb.projects || []).map((project) => [project.id, project]));
+    nextDb.projects.forEach((project) => {
+      if (prevById.get(project.id) !== project) pendingSyncIds.current.add(project.id);
+    });
+    if (!pendingSyncIds.current.size) return;
+
+    clearTimeout(syncTimer.current);
+    syncTimer.current = setTimeout(() => {
+      const ids = [...pendingSyncIds.current];
+      pendingSyncIds.current.clear();
+      ids.forEach((id) => {
+        const project = latestDb.current.projects.find((entry) => entry.id === id);
+        if (project) syncProjectToSheet(project);
+      });
+    }, SHEET_SYNC_DELAY_MS);
+  };
+
   const persistDb = (nextDb) => {
     setSaveState("saving");
     const saved = saveDb(nextDb);
+    scheduleSheetSync(latestDb.current, saved);
+    latestDb.current = saved;
     setDb(saved);
-    
-    // Sync all projects to sheet in background
-    if (SHEET_API_URL && saved.projects) {
-      saved.projects.forEach((project) => {
-        syncProjectToSheet(project).catch(() => {});
-      });
-    }
-    
     setSaveState("saved");
     setTimeout(() => setSaveState("idle"), 900);
   };
