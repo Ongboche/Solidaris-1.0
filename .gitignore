@@ -1,7 +1,10 @@
 node_modules/
 dist/
 .env
+.env.local
 *.log
 ~$*
 desktop.ini
 research/
+test-results/
+playwright-report/
