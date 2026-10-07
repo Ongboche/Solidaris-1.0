@@ -7,6 +7,7 @@ import { useAuth } from '../../app/auth'
 import { SelectField, TextField } from '../../ui/Field'
 import { Alert, Card, Spinner } from '../../ui/Feedback'
 import { share } from './share'
+import { ScrollArea } from '../../ui/ScrollArea'
 
 interface Indicators {
   projects: number
@@ -95,7 +96,7 @@ export default function MeDashboardPage() {
             <dl>
               <Row label={t('me.medianDays')} value={me.data.op3.median_days_g0_to_g6 ?? '—'} />
             </dl>
-            <div className="mt-3 overflow-x-auto">
+            <ScrollArea label={t('me.firstPass')} className="mt-3">
               <table className="w-full text-left text-sm">
                 <caption className="sr-only">{t('me.firstPass')}</caption>
                 <thead className="border-b border-line text-muted"><tr><th scope="col" className="p-2">{t('me.gate')}</th><th scope="col" className="p-2">{t('me.firstPass')}</th></tr></thead>
@@ -105,7 +106,7 @@ export default function MeDashboardPage() {
                   ))}
                 </tbody>
               </table>
-            </div>
+            </ScrollArea>
             {me.data.op3.recent_hold_reasons.length > 0 && (
               <>
                 <h3 className="mt-4 font-semibold">{t('me.holdReasons')}</h3>

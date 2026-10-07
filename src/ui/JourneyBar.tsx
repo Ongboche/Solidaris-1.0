@@ -15,7 +15,8 @@ interface JourneyBarProps {
 export function JourneyBar({ current, passed, onHold = false, linkTo }: JourneyBarProps) {
   const { t } = useTranslation()
   return (
-    <nav aria-label={t('journey.label')} className="overflow-x-auto">
+    // Focusable so keyboard users can scroll it on narrow screens (WCAG 2.1.1).
+    <nav aria-label={t('journey.label')} tabIndex={0} className="overflow-x-auto">
       <ol className="flex min-w-max gap-2">
         {GATES.map((gate) => {
           const isPassed = passed.includes(gate)

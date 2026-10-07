@@ -92,7 +92,7 @@ export function DomainEditor({ projectId, subjectType, assessment, domain, ratin
     .sort((a, b) => Number(b.links.some((l) => l.domain_id === domain.id)) - Number(a.links.some((l) => l.domain_id === domain.id)))
   const linkedGaps = gaps.filter((g) => rating.gaps.some((l) => l.gap_id === g.id))
   const lastLink = rating.is_complete && counts.evidenceCount + counts.gapCount <= 1
-  const color = `var(--color-${domain.dimension.color_token})`
+  const color = `var(--color-${domain.dimension.color_token}-text)`
 
   return (
     <div className="flex flex-col gap-6">

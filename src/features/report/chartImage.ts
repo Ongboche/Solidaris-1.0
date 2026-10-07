@@ -75,7 +75,7 @@ export function profileChartPng(domains: ReportDomain[], labels: ChartLabels): {
 
   for (const r of rows) {
     if (r.kind === 'dimension') {
-      ctx.fillStyle = COLORS[r.dimension] ?? '#20261F'
+      ctx.fillStyle = r.dimension === 'HOW' ? '#8A5A17' : (COLORS[r.dimension] ?? '#20261F') // readable text shade
       ctx.font = 'bold 14px sans-serif'
       ctx.fillText(r.label, 8, r.y)
       continue

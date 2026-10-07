@@ -4,6 +4,7 @@ import type { ReportDomain } from '../report/reportData'
 
 const OPACITY: Record<string, number> = { low: 0.4, medium: 0.7, high: 1 }
 const COLOR: Record<string, string> = { WHAT: 'var(--color-what)', HOW: 'var(--color-how)', 'TO WHAT END': 'var(--color-end)' }
+const TEXT_COLOR: Record<string, string> = { WHAT: 'var(--color-what-text)', HOW: 'var(--color-how-text)', 'TO WHAT END': 'var(--color-end-text)' }
 
 /**
  * Grouped horizontal bars by dimension (brief §9.8). One bar per domain on its own
@@ -26,7 +27,7 @@ export function ProfileChart({ domains }: { domains: ReportDomain[] }) {
           }))
         return (
           <figure key={dim} className="flex flex-col gap-2">
-            <figcaption className="font-semibold" style={{ color: COLOR[dim] }}>
+            <figcaption className="font-semibold" style={{ color: TEXT_COLOR[dim] }}>
               {dim}
             </figcaption>
             <div aria-hidden style={{ width: '100%', height: rows.length * 52 + 24 }}>

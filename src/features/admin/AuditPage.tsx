@@ -5,6 +5,7 @@ import { run } from '../../lib/api'
 import { supabase } from '../../lib/supabase'
 import { Button } from '../../ui/Button'
 import { Alert, Card, Spinner } from '../../ui/Feedback'
+import { ScrollArea } from '../../ui/ScrollArea'
 
 /** Audit log (invariant 8): read-only, with a check that the hash chain is intact. */
 export default function AuditPage() {
@@ -39,7 +40,7 @@ export default function AuditPage() {
       </Card>
       <h2 className="text-lg font-semibold">{t('audit.recent')}</h2>
       {log.isLoading ? <Spinner label={t('common.loading')} /> : (
-        <div className="overflow-x-auto rounded border border-line bg-panel">
+        <ScrollArea label={t('audit.recent')} className="rounded border border-line bg-panel">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-line text-muted">
               <tr><th scope="col" className="p-2">#</th><th scope="col" className="p-2">{t('audit.when')}</th><th scope="col" className="p-2">{t('audit.action')}</th><th scope="col" className="p-2">{t('audit.record')}</th><th scope="col" className="p-2">{t('audit.by')}</th></tr>
@@ -56,7 +57,7 @@ export default function AuditPage() {
               ))}
             </tbody>
           </table>
-        </div>
+        </ScrollArea>
       )}
     </div>
   )
