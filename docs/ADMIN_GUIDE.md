@@ -30,6 +30,10 @@ For platform and institution administrators, and for whoever runs the deployment
 - **Storage:** the `evidence` bucket is private, with a 25 MB limit per file. It is created by the migrations.
 
 ### Gmail SMTP (pilot)
+
+> **Temporary (PLAN D-51):** email confirmation is currently **off**, because the Gmail sender is failing. When email works:
+> 1. Supabase → Authentication → Providers → Email → turn **Confirm email** back on.
+> 2. Run a password reset to your own address to confirm emails arrive.
 1. Turn on 2-Step Verification on the sending Gmail account.
 2. Create an app password at https://myaccount.google.com/apppasswords.
 3. In Supabase → Authentication → Emails → SMTP Settings, turn on custom SMTP and fill in:
