@@ -47,7 +47,8 @@ test.describe('signed-in screens (mocked backend)', () => {
     await page.goto(`/projects/${projectId}/profile`)
     await expect(page.getByRole('heading', { name: 'Solidarity profile' })).toBeVisible()
     await expect(page.getByRole('table', { name: 'Domain-by-domain profile' })).toContainText('Not rated')
-    await expect(page.locator('body')).not.toContainText(/average|overall score|index/i)
+    // Invariant 1: no aggregate figure anywhere (a score-like word followed by a number).
+    await expect(page.locator('body')).not.toContainText(/(average|mean|overall|index|total score|score)\W{0,3}\d/i)
     await expectAccessible(page)
   })
 
