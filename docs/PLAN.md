@@ -1,6 +1,6 @@
 # SOLIDARIS — Re-engineering Plan
 
-**Status:** Phase 1 (foundation) built and tested locally; migrations not yet applied to the hosted project (see §9) · **Source of truth:** `docs/SOLIDARIS_REENGINEERING_BRIEF.md`, then the SRS (`research/SOLIDARIS.docx`) where the brief is silent · **Findings:** `docs/AUDIT.md`
+**Status:** Phases 1–5 built and tested; Phases 2–5 awaiting push and merge (see §9) · **Source of truth:** `docs/SOLIDARIS_REENGINEERING_BRIEF.md`, then the SRS (`research/SOLIDARIS.docx`) where the brief is silent · **Findings:** `docs/AUDIT.md`
 
 This plan is updated at the start and end of each phase. In this document:
 - "§n" refers to a section of the brief.
@@ -638,3 +638,74 @@ Everything marked 🟡 goes ahead as described unless you say otherwise.
 | D-35 | **Tests updated with care:** the Phase 1 gate tests now record a real decision record before G0. Previously they answered every criterion "yes" by hand, which automatic checks now correctly override. No invariant was weakened. | ✅ |
 
 **Not yet covered:** an end-to-end journey with signed-in users. It needs seeded test accounts and a mailer, and is planned for the full G0–G8 Playwright journey (§14) once SMTP is configured.
+### Phases 3–5: Evidence, assessment, integrity, deliberation, profile and reporting (2026-10-07)
+
+Built in one pass at Paul's request so Phases 2–5 can be pushed and merged together.
+
+**Database** (migrations `20261007000200`, `…0300`, `…0400`, applied to `solidaris-dev` and verified):
+- **Phase 3:**
+  - Evidence files must sit under their project's folder.
+  - Automatic checks are now pluggable: one `auto_check_<key>` function per criterion.
+  - G2 checks: evidence or gap for every domain; ≥2 evidence types; community-origin evidence for D5 and D8; gaps state their effect.
+  - G3 checks: every assessor submitted or withdrawn; every rating complete.
+- **Phase 4:**
+  - Assessors must complete their own integrity review (all 4 flags and a primary type) before submitting.
+  - `record_integrity_qa` (reviewer only); the team edits integrity answers through column-level grants.
+  - G4 checks: all 11 integrity questions; all 4 flags; a type with evidence; a community participant on the team.
+  - Per-domain divergence and the G5 checks (divergent domains discussed; consensus or dissent for every domain).
+  - Consensus approval chain: `verify_consensus` (reviewer), then `approve_profile` (PI). Any edit resets verification, and consensus locks after approval.
+- **Phase 5:**
+  - `profile_ratings`: domain-level rows only, available only after PI approval; observers and community participants see it after G6.
+  - `approve_report_draft` (PI only).
+  - G6 checks: reviewer verified, member-check recorded, domain-level only (true by design).
+
+**Front end:**
+- **Evidence** (T5): register, per-domain coverage table, file upload to the private bucket or a link, domain tags, confidentiality levels, gaps.
+- **Assessment** (T3):
+  - one domain per screen: prompts on the left, an evidence panel to link, quick-add or log a gap, then rating buttons, narrative and confidence;
+  - a "Mark complete" button that says what is missing;
+  - the integrity step, then review and submit with the SRS §8.18 certification;
+  - a progress table for the PI and reviewer, with withdraw and reopen (reason required).
+- **Integrity** (T4): each assessor's flags side by side, the consolidated review, and reviewer QA.
+- **Deliberation** (T6):
+  - per domain: assessors' ratings side by side, a divergence badge, a discussion thread, a consensus editor (PI), and dissent records;
+  - deliberation sessions with attendance;
+  - a simplified view for community participants;
+  - the approval panel.
+- **Profile** (T8):
+  - horizontal bars grouped by dimension: unrated domains are gaps, confidence is shown by opacity and in text, and there are no averages;
+  - a full table as the accessible alternative;
+  - risk-flag chips and the solidarity type;
+  - an Exploratory / Validated / Awaiting-validation label.
+- **Report:**
+  - exports: PDF, DOCX, domain-ratings CSV, evidence-register CSV, all built from one model that passes `assertNoComposite`;
+  - template narrative labelled "Auto-drafted from your entries — edit before use.", editable until the PI approves it;
+  - member-checks.
+- **"What to do next"** now also covers adding evidence, completing your assessment and joining deliberation.
+
+**Test results:**
+- 134 unit and database tests, including a 20-step database journey from G0 to G6 plus an Exploratory project
+- 12 end-to-end checks with axe
+- type-check clean
+- lint: 0 errors
+- initial JS: 169 KB gzipped. The PDF library (about 1.2 MB) is lazy-loaded on export.
+
+**Decisions taken in Phases 3–5 (please review):**
+
+| # | Decision | Status |
+|---|---|---|
+| D-36 | Submitting an assessment requires the assessor's own integrity review with all four flags and a primary type. The 11 text answers are optional at assessor level and required at project level for G4. | 🟡 |
+| D-37 | **Schema addition** (§16 asks for approval after Phase 1): `assessment_projects.profile_approved_at/_by`, set only by `approve_profile()`. Needed because the SRS says no profile exists before PI approval, and Exploratory projects have no consensus rows to carry the approval. | 🔴 Approve |
+| D-38 | "Exploratory" means the single-assessor flag is set, or fewer than two assessments were submitted (for example after a withdrawal, D-22). | 🟡 |
+| D-39 | For Exploratory projects, the G5 check "consensus or dissent for each domain" passes automatically, because there is nothing to reconcile. | 🟡 |
+| D-40 | Consensus can be verified and approved during deliberation or validation. Editing a consensus row resets its verification. After approval, consensus is locked. | ✅ |
+| D-41 | The G4 check "community participant scheduled for deliberation" means at least one community participant on the team. Deliberation sessions are recorded after G4, so they cannot be checked at G4. | 🟡 |
+| D-42 | `domain_divergence` cannot be called from the browser. Even the spread of ratings must not leak before G3. The deliberation screen computes divergence from ratings it can already see after G3. | ✅ |
+| D-43 | Community participants get a simplified deliberation view: assessor ratings and narratives are collapsed behind a toggle. Their data access itself is the same as other deliberation roles after G3. | 🟡 |
+| D-44 | **Known limitation:** PDF and DOCX exports contain the domain table, not the chart image. Brief §10 asks for "chart + table"; adding the chart image is planned for Phase 7. | 🔴 Accept for now? |
+| D-45 | Evidence uploads are limited to 25 MB per file in the browser. Setting the same limit on the storage bucket is planned for Phase 7. | 🟡 |
+
+**Not yet covered:**
+- No end-to-end test signs in as real users across roles. The database journey covers the logic.
+- T7, T9 and T10 (signals, uptake, learning) are Phase 6.
+- G7 and G8 have no automatic evaluators yet.
