@@ -31,6 +31,13 @@ test('sign-in shows plain-language validation', async ({ page }) => {
   await expect(page.getByText('Enter a valid email address, like name@organisation.org.')).toBeVisible()
 })
 
+test('project and invitation pages require signing in', async ({ page }) => {
+  await page.goto('/invite/some-token')
+  await expect(page).toHaveURL(/\/sign-in$/)
+  await page.goto('/projects/new')
+  await expect(page).toHaveURL(/\/sign-in$/)
+})
+
 test('unknown pages explain what happened', async ({ page }) => {
   await page.goto('/no-such-page')
   await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible()
