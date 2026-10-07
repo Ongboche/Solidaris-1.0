@@ -29,6 +29,8 @@ export function exportEvidenceCsv(name: string, rows: EvidenceRow[]) {
 export interface ReportText {
   title: string
   labelText: string
+  /** PNG of the profile chart (PLAN D-44); omitted where no canvas is available */
+  chart?: { dataUrl: string; width: number; height: number }
   sections: { heading: string; paragraphs: string[] }[]
   table: { headers: string[]; rows: string[][] }
 }
@@ -98,15 +100,26 @@ export function toReportText(d: ReportData, t: (key: string, vars?: Record<strin
   }
 }
 
+function dataUrlBytes(dataUrl: string): Uint8Array {
+  const bin = atob(dataUrl.split(',')[1] ?? '')
+  return Uint8Array.from(bin, (c) => c.charCodeAt(0))
+}
+
 export async function exportDocx(text: ReportText, filename: string) {
-  const { Document, Packer, Paragraph, HeadingLevel, Table, TableRow, TableCell, TextRun, WidthType } = await import('docx')
+  const { Document, Packer, Paragraph, HeadingLevel, Table, TableRow, TableCell, TextRun, WidthType, ImageRun } = await import('docx')
   const cell = (s: string, bold = false) => new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: s, bold })] })] })
+  const chart = text.chart
+    ? [new Paragraph({
+        children: [new ImageRun({ type: 'png', data: dataUrlBytes(text.chart.dataUrl), transformation: { width: 600, height: Math.round((600 * text.chart.height) / text.chart.width) } })],
+      })]
+    : []
   const doc = new Document({
     sections: [
       {
         children: [
           new Paragraph({ text: text.title, heading: HeadingLevel.TITLE }),
           new Paragraph({ children: [new TextRun({ text: text.labelText, bold: true })] }),
+          ...chart,
           new Paragraph({ text: '' }),
           new Table({
             width: { size: 100, type: WidthType.PERCENTAGE },
@@ -121,7 +134,7 @@ export async function exportDocx(text: ReportText, filename: string) {
 }
 
 export async function exportPdf(text: ReportText, filename: string) {
-  const [{ pdf, Document, Page, Text, View, StyleSheet }, React] = await Promise.all([import('@react-pdf/renderer'), import('react')])
+  const [{ pdf, Document, Page, Text, View, Image, StyleSheet }, React] = await Promise.all([import('@react-pdf/renderer'), import('react')])
   const h = React.createElement
   const s = StyleSheet.create({
     page: { padding: 36, fontSize: 10, lineHeight: 1.4 },
@@ -142,6 +155,7 @@ export async function exportPdf(text: ReportText, filename: string) {
       { size: 'A4', style: s.page },
       h(Text, { style: s.title }, text.title),
       h(Text, { style: s.label }, text.labelText),
+      ...(text.chart ? [h(Image, { key: 'chart', src: text.chart.dataUrl, style: { width: 520, marginBottom: 12 } })] : []),
       h(View, { style: [s.row, s.head] }, ...text.table.headers.map((c, i) => h(Text, { key: i, style: widths[i] }, c))),
       ...text.table.rows.map((r, n) => h(View, { key: n, style: s.row, wrap: false }, ...r.map((c, i) => h(Text, { key: i, style: widths[i] }, c)))),
       ...text.sections.flatMap((sec, n) => [
