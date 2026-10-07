@@ -1,0 +1,11 @@
+[
+  { "name": "nothing answered", "criteria": [{ "id": "a", "required": true, "answer": null }], "decision": "not_started", "reasons": [] },
+  { "name": "all required yes", "criteria": [{ "id": "a", "required": true, "answer": "yes" }, { "id": "b", "required": true, "answer": "yes" }], "decision": "go", "reasons": [] },
+  { "name": "na with note counts as met", "criteria": [{ "id": "a", "required": true, "answer": "na", "note": "Not a portfolio" }, { "id": "b", "required": true, "answer": "yes" }], "decision": "go", "reasons": [] },
+  { "name": "na without note is not met", "criteria": [{ "id": "a", "required": true, "answer": "na", "note": "  " }, { "id": "b", "required": true, "answer": "yes" }], "decision": "conditional_go", "reasons": ["na_missing_note:a"] },
+  { "name": "partial never counts as met", "criteria": [{ "id": "a", "required": true, "answer": "partial" }, { "id": "b", "required": true, "answer": "yes" }], "decision": "conditional_go", "reasons": ["required_partial:a"] },
+  { "name": "any required no means hold", "criteria": [{ "id": "a", "required": true, "answer": "no" }, { "id": "b", "required": true, "answer": "partial" }], "decision": "hold", "reasons": ["required_no:a", "required_partial:b"] },
+  { "name": "advisory no does not hold", "criteria": [{ "id": "a", "required": true, "answer": "yes" }, { "id": "b", "required": false, "answer": "no" }], "decision": "go", "reasons": [] },
+  { "name": "unanswered required is not met", "criteria": [{ "id": "a", "required": true, "answer": "yes" }, { "id": "b", "required": true, "answer": null }], "decision": "conditional_go", "reasons": ["required_unanswered:b"] },
+  { "name": "only advisory answered", "criteria": [{ "id": "a", "required": true, "answer": null }, { "id": "b", "required": false, "answer": "yes" }], "decision": "conditional_go", "reasons": ["required_unanswered:a"] }
+]
