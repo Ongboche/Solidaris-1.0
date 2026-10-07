@@ -83,6 +83,17 @@ async function completeAll(t: Team, assessor: string) {
   ])
   await asUser(db, assessor, async (tx) => {
     for (const r of ratings) await completeRating(tx, t.project, r.id)
+    // PLAN D-7: the assessor's own integrity review comes before submission.
+    const [rev] = (
+      await tx.query<{ id: string }>(
+        `insert into integrity_reviews (project_id, scope, assessment_id, primary_type) values ($1, 'assessor', $2, 'substantive') returning id`,
+        [t.project, assessment],
+      )
+    ).rows
+    await tx.query(
+      `insert into integrity_flags (integrity_review_id, flag, level) select $1, f, 'low' from unnest(enum_range(null::risk_flag)) f`,
+      [rev!.id],
+    )
   })
   return assessment
 }
@@ -398,6 +409,24 @@ describe('gates (brief §6, invariant 7)', () => {
 
   it('makes G2 wait for reviewer verification (PLAN D-12)', async () => {
     const t = await makeTeam('evidence')
+    // Evidence that satisfies the G2 automatic checks: all domains, two types, community origin for D5/D8.
+    await asUser(db, t.a1, async (tx) => {
+      for (const [type, origin, codes] of [
+        ['document', 'government', ['D1', 'D2', 'D3', 'D4', 'D6', 'D7', 'D9']],
+        ['fgd', 'community', ['D5', 'D8']],
+      ] as const) {
+        const [ev] = (
+          await tx.query<{ id: string }>(
+            `insert into evidence_items (project_id, title, type, url, origin) values ($1, 'Source', $2, 'https://example.org', $3) returning id`,
+            [t.project, type, origin],
+          )
+        ).rows
+        await tx.query(`insert into evidence_domain_links (evidence_id, domain_id) select $1, id from domains where code = any($2)`, [
+          ev!.id,
+          codes,
+        ])
+      }
+    })
     await answerAll(t.pi, t.project, 'G2')
     await expect(queryAs(db, t.pi, `select public.decide_gate($1, 'G2', 'go')`, [t.project])).rejects.toThrow(/reviewer must verify/)
     await queryAs(db, t.reviewer, `select public.record_gate_verification($1, 'G2', 'verified', null)`, [t.project])
