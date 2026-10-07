@@ -1,0 +1,50 @@
+/* Design tokens (brief §9.16). Dimension colours carry meaning, but never alone (§9.12). */
+:root {
+  --color-what: #2f6f5e;
+  --color-how: #b0782e;
+  --color-end: #5b4c8a;
+  --color-ink: #20261f;
+  --color-muted: #6b6250;
+  --color-bg: #f6f4ef;
+  --color-panel: #ffffff;
+  --color-line: #dad4c4;
+  --color-alert: #7a3b2e;
+  --color-alert-bg: #fbefec;
+  --color-success-bg: #eaf3ef;
+  --color-focus: #1c4f9c;
+
+  /* Darker shade of the primary green for text on light backgrounds and hover (4.5:1+). */
+  --color-primary: #2f6f5e;
+  --color-primary-hover: #245748;
+
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif;
+  --radius: 10px;
+}
+
+html {
+  font-size: 100%; /* 16px base, respects the user's browser setting */
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  background: var(--color-bg);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Visible focus everywhere (WCAG 2.4.7 / 2.4.11). */
+:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
