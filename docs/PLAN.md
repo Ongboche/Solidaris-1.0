@@ -587,12 +587,15 @@ Everything marked 🟡 goes ahead as described unless you say otherwise.
 | D-31 | The G3 criterion text includes the PI withdrawal route (D-22). Appendix B wording is otherwise unchanged. | ✅ |
 
 **Still open for Phase 1:**
-1. **Apply the migrations to the hosted project.** Needs `SUPABASE_ACCESS_TOKEN`. Then run `npx supabase link --project-ref emtowdhobspmmtypulpi` and `npm run db:push`.
-2. **Set Auth in the Supabase dashboard:**
-   - Site URL: `https://ongboche.github.io/Solidaris-1.0/`
-   - Redirect URLs: `https://ongboche.github.io/Solidaris-1.0/**` and `http://localhost:5173/**`
-   - Minimum password length: 10
-   - Email confirmations: on
-   - This can be done through the Management API once the token exists.
-3. **Confirm the project's region.** The privacy notice says data is stored in the United Kingdom (D-9), so this must be checked before launch.
-4. **Seed the first platform admin.** After you sign up, one SQL update sets your `platform_role`.
+1. ~~Apply the migrations to the hosted project.~~ **Done 2026-10-06.** All 8 migrations were pushed to `emtowdhobspmmtypulpi`. Checked afterwards:
+   - 46 tables, all with RLS;
+   - framework v1 published (9 domains, 43 criteria);
+   - the evidence bucket is private;
+   - anonymous REST and RPC calls get `permission denied`.
+2. ~~Set Auth settings.~~ **Done** via the Management API:
+   - site URL set to the Pages URL;
+   - redirect allow-list: Pages and localhost;
+   - minimum password length: 10;
+   - email confirmation required.
+3. ~~Confirm the project's region.~~ **`eu-west-2` (London), Postgres 17**, so the notice's "United Kingdom" is accurate.
+4. **Seed the first platform admin.** After Paul signs up, one SQL update sets his `platform_role`.
