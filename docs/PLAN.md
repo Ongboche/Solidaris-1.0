@@ -695,14 +695,14 @@ Built in one pass at Paul's request so Phases 2–5 can be pushed and merged tog
 | # | Decision | Status |
 |---|---|---|
 | D-36 | Submitting an assessment requires the assessor's own integrity review with all four flags and a primary type. The 11 text answers are optional at assessor level and required at project level for G4. | 🟡 |
-| D-37 | **Schema addition** (§16 asks for approval after Phase 1): `assessment_projects.profile_approved_at/_by`, set only by `approve_profile()`. Needed because the SRS says no profile exists before PI approval, and Exploratory projects have no consensus rows to carry the approval. | 🔴 Approve |
+| D-37 | **Schema addition** (§16 asks for approval after Phase 1): `assessment_projects.profile_approved_at/_by`, set only by `approve_profile()`. Needed because the SRS says no profile exists before PI approval, and Exploratory projects have no consensus rows to carry the approval. **Approved by Paul, 2026-10-07.** | ✅ |
 | D-38 | "Exploratory" means the single-assessor flag is set, or fewer than two assessments were submitted (for example after a withdrawal, D-22). | 🟡 |
 | D-39 | For Exploratory projects, the G5 check "consensus or dissent for each domain" passes automatically, because there is nothing to reconcile. | 🟡 |
 | D-40 | Consensus can be verified and approved during deliberation or validation. Editing a consensus row resets its verification. After approval, consensus is locked. | ✅ |
 | D-41 | The G4 check "community participant scheduled for deliberation" means at least one community participant on the team. Deliberation sessions are recorded after G4, so they cannot be checked at G4. | 🟡 |
 | D-42 | `domain_divergence` cannot be called from the browser. Even the spread of ratings must not leak before G3. The deliberation screen computes divergence from ratings it can already see after G3. | ✅ |
 | D-43 | Community participants get a simplified deliberation view: assessor ratings and narratives are collapsed behind a toggle. Their data access itself is the same as other deliberation roles after G3. | 🟡 |
-| D-44 | **Known limitation:** PDF and DOCX exports contain the domain table, not the chart image. Brief §10 asks for "chart + table"; adding the chart image is planned for Phase 7. | 🔴 Accept for now? |
+| D-44 | **Known limitation:** PDF and DOCX exports contain the domain table, not the chart image. Brief §10 asks for "chart + table"; adding the chart image is planned for Phase 7. **Accepted by Paul, 2026-10-07: add the chart in Phase 7.** | ✅ |
 | D-45 | Evidence uploads are limited to 25 MB per file in the browser. Setting the same limit on the storage bucket is planned for Phase 7. | 🟡 |
 
 **Not yet covered:**
