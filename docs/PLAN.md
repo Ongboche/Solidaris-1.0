@@ -759,3 +759,8 @@ Built in one pass at Paul's request so Phases 2–5 can be pushed and merged tog
 - No signed-in end-to-end journey across real accounts (§14 asks for a full G0–G8 Playwright run with six roles). The database journey covers the logic, and the screens are checked against a mocked backend. A live-account run needs seeded test users and SMTP.
 - French translation (brief §9.15): the i18n layer is in place, and `fr.json` still needs translating.
 - Signed-in screens for assessment, integrity and deliberation are not yet covered by the mocked axe checks.
+### Interim email arrangement (2026-10-07)
+
+| # | Decision | Status |
+|---|---|---|
+| D-51 | **Email confirmation is switched off** (`mailer_autoconfirm = true`) while the Gmail SMTP sender is failing. Decided by Paul (Option A). New users can sign up and sign in without email. "Forgot password" does not work until email works: an administrator resets passwords in Supabase → Authentication → Users. Verified with a real sign-up, sign-in and profile check through the public API; the test account was then deleted. **Switch confirmation back on once email works.** | 🟡 Temporary |
