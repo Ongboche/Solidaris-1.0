@@ -16,18 +16,23 @@ import type {
 } from './types'
 
 /** Throws Supabase errors so TanStack Query and error boundaries see them. */
-async function run<T>(promise: PromiseLike<{ data: T; error: { message: string } | null }>): Promise<T> {
+export async function run<T>(promise: PromiseLike<{ data: T; error: { message: string } | null }>): Promise<T> {
   const { data, error } = await promise
   if (error) throw new Error(error.message)
   return data
 }
 
-const BUNDLE = `id, status, assessment_type, single_assessor, closed_reason, created_at, framework_version_id,
+const BUNDLE = `id, status, assessment_type, single_assessor, closed_reason, created_at, framework_version_id, profile_approved_at,
   subjects(*), project_members(id, user_id, role, coi_declared_at, coi_statement),
   decision_records(*), context_profiles(*), actors(*),
-  gate_reviews(gate, owner_decision, decided_at, attempt_number)`
+  gate_reviews(gate, owner_decision, decided_at, attempt_number), assessments(assessor_id, status)`
 
-export type Bundle = ProjectBundle & { framework_version_id: string }
+export type Bundle = ProjectBundle & {
+  framework_version_id: string
+  profile_approved_at: string | null
+  /** RLS returns only the user's own assessment before G3 (invariant 4). */
+  assessments?: { assessor_id: string; status: 'draft' | 'submitted' | 'reopened' | 'withdrawn' }[]
+}
 
 /** One-to-one embeds may arrive as an object or a one-item array depending on the API version. */
 function one<T>(value: T | T[] | null | undefined): T | null {
