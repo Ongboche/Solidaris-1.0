@@ -1,6 +1,6 @@
 # SOLIDARIS — Re-engineering Plan
 
-**Status:** Phases 1–5 built and tested; Phases 2–5 awaiting push and merge (see §9) · **Source of truth:** `docs/SOLIDARIS_REENGINEERING_BRIEF.md`, then the SRS (`research/SOLIDARIS.docx`) where the brief is silent · **Findings:** `docs/AUDIT.md`
+**Status:** All phases (0–7) built and tested; Phases 2–7 awaiting merge (see §9) · **Source of truth:** `docs/SOLIDARIS_REENGINEERING_BRIEF.md`, then the SRS (`research/SOLIDARIS.docx`) where the brief is silent · **Findings:** `docs/AUDIT.md`
 
 This plan is updated at the start and end of each phase. In this document:
 - "§n" refers to a section of the brief.
@@ -709,3 +709,53 @@ Built in one pass at Paul's request so Phases 2–5 can be pushed and merged tog
 - No end-to-end test signs in as real users across roles. The database journey covers the logic.
 - T7, T9 and T10 (signals, uptake, learning) are Phase 6.
 - G7 and G8 have no automatic evaluators yet.
+### Phases 6–7: Uptake, signals, learning, administration, M&E and hardening (2026-10-08)
+
+**Database** (migrations `20261008000100` and `…0200`):
+- **Phase 6:**
+  - `decision_responses` (an action plan, or no action with a reason, plus a follow-up date).
+  - Action owners can update their own actions.
+  - `start_reassessment` links the follow-up review to the new cycle and refuses a duplicate.
+  - G7 checks: KT product delivered to a named decision-maker; response recorded; follow-up date set.
+  - G8 checks: follow-up review done; signals since the project began all reviewed; reassessment decided; lessons logged.
+  - The evidence bucket now enforces the 25 MB limit (D-45).
+- **Phase 7:**
+  - `admin_set_user`: platform admins only, and the last platform admin is protected.
+  - `clone_framework_version`: copy to a draft, edit it, publish it (invariant 9).
+  - `verify_audit_chain`: recomputes the hash chain.
+  - `me_indicators`: OC1–OC4 and OP3, filterable; institution admins see only their institution.
+  - **Fix:** audit hashing is now pinned to UTC, so the chain no longer depends on the session time zone. Found when PGlite ran in this PC's time zone; there is a test for it.
+
+**Front end:**
+- **Uptake** (T9): KT products, the decision-maker's response, the action plan with owners and due dates, and the uptake log with use types.
+- **Signals** (T7): Watch/Act observations per domain with the framework's signal hints, PI review, and an "Act" banner suggesting early reassessment. No probabilities or scores (invariant 10).
+- **Learning** (T10): the follow-up review, the reassessment decision, a lessons log for the framework, and **Start reassessment**.
+- All three sit behind `VITE_FLAG_UPTAKE`, `VITE_FLAG_SIGNALS` and `VITE_FLAG_LEARNING`.
+- **What to do next** now reminds action owners of actions due within two weeks or overdue, even after the project closes.
+- **Administration:**
+  - the Toolkit M&E dashboard, which shows counts behind every percentage and labels itself as about the toolkit, not solidarity;
+  - Users, Institutions, Framework (versions, draft editor, revision log) and the Audit log with an integrity check.
+- **D-44:** PDF and DOCX exports now include the profile chart. It is drawn on a canvas with the same rules as the screen chart: unrated domains are labelled "Not rated" and nothing is averaged.
+- **Migration script** `scripts/migrate-from-sheet.ts` (brief §13):
+  - reads the Sheet CSV or the legacy JSON;
+  - runs as a dry run by default and always writes `migration-report.md`;
+  - `--apply` uses the service key, invites users, and imports each old assessment as one legacy, submitted assessment by its owner;
+  - ratings of 0 become NULL, and passwords are never imported.
+- **Accessibility pass:** the signed-in screens (home, project, team, scoping, context, gate, evidence, profile, report, admin) now run under axe, at desktop and 360px, against a mocked backend.
+- **Documentation:** `docs/USER_GUIDE.md` and `docs/ADMIN_GUIDE.md`.
+
+**Decisions taken in Phases 6–7 (please review):**
+
+| # | Decision | Status |
+|---|---|---|
+| D-46 | G8 "signals reviewed since last assessment" counts signals observed on or after the project's start date for the same subject. | 🟡 |
+| D-47 | **T7, T9 and T10 are switched on in the pilot build** so the team can review them, as the brief allows ("build them, but behind feature flags"). One line in `.env.production` turns each off. | 🟡 |
+| D-48 | **Schema addition:** `decision_responses` (an action plan, or no action with a reason, plus a follow-up date). Needed for the G7 criteria "response recorded" and "follow-up date set", which had nowhere to be stored. | 🔴 Approve |
+| D-49 | The migration adds the old owner as both PI and assessor of the imported project, so their old assessment has an owner. Former reviewers are listed in the report, not added: their old role does not map to an independent assessor. | 🟡 |
+| D-50 | M&E "first-pass rate with coded hold reasons": hold reasons are shown as written, because no code list exists yet. | 🟡 Needs a code list from the team |
+
+**Still open:**
+- Configure Gmail SMTP (D-14) so invitations and sign-ups reach people outside the Supabase organisation. Then remove the closed-pilot sign-up message.
+- No signed-in end-to-end journey across real accounts (§14 asks for a full G0–G8 Playwright run with six roles). The database journey covers the logic, and the screens are checked against a mocked backend. A live-account run needs seeded test users and SMTP.
+- French translation (brief §9.15): the i18n layer is in place, and `fr.json` still needs translating.
+- Signed-in screens for assessment, integrity and deliberation are not yet covered by the mocked axe checks.
