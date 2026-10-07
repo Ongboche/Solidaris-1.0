@@ -1,6 +1,9 @@
 -- Minimal stand-in for the pieces of Supabase the migrations rely on, so they
 -- run inside PGlite for local tests. CI also applies them to a real Supabase stack.
 
+-- Supabase sessions run in UTC; PGlite would otherwise use this computer's time zone.
+set timezone = 'UTC';
+
 create role anon nologin;
 create role authenticated nologin;
 create role service_role nologin bypassrls;
