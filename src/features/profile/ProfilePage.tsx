@@ -4,6 +4,7 @@ import { Term } from '../../ui/Term'
 import { useProjectContext } from '../project/ProjectLayout'
 import { ProfileChart } from './ProfileChart'
 import { useReportData } from './useReportData'
+import { ScrollArea } from '../../ui/ScrollArea'
 
 /** T8 solidarity profile: domain by domain, never a single score (invariant 1). */
 export default function ProfilePage() {
@@ -32,7 +33,7 @@ export default function ProfilePage() {
         <ProfileChart domains={data.domains} />
       </Card>
 
-      <div className="overflow-x-auto rounded border border-line bg-panel">
+      <ScrollArea label={t('profileView.tableCaption')} className="rounded border border-line bg-panel">
         <table className="w-full text-left">
           <caption className="p-3 text-left font-semibold">{t('profileView.tableCaption')}</caption>
           <thead className="border-b border-line text-sm text-muted">
@@ -62,7 +63,7 @@ export default function ProfilePage() {
             ))}
           </tbody>
         </table>
-      </div>
+      </ScrollArea>
 
       <Card className="flex flex-col gap-3">
         <h3 className="text-lg font-semibold">{t('integrity.flagsTitle')}</h3>

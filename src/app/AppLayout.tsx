@@ -25,6 +25,11 @@ export function AppLayout() {
               <NavLink to="/" end className={({ isActive }) => (isActive ? 'font-semibold underline' : 'underline-offset-4 hover:underline')}>
                 {t('nav.home')}
               </NavLink>
+              {(profile?.platform_role === 'platform_admin' || profile?.platform_role === 'institution_admin') && (
+                <NavLink to="/admin" className={({ isActive }) => (isActive ? 'font-semibold underline' : 'underline-offset-4 hover:underline')}>
+                  {t('nav.admin')}
+                </NavLink>
+              )}
               <NavLink to="/profile" className={({ isActive }) => (isActive ? 'font-semibold underline' : 'underline-offset-4 hover:underline')}>
                 {profile?.full_name ?? t('nav.profile')}
               </NavLink>

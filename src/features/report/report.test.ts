@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { buildReportData, profileLabel, type ReportInput } from './reportData'
 import { buildNarrativeDraft, DRAFT_LABEL } from './narrative'
 import { evidenceCsv, ratingsCsv, toCsv } from './csv'
+import { chartLayout } from './chartImage'
 
 const input = (over: Partial<ReportInput> = {}): ReportInput => ({
   subject: { name: 'Kaduna Equity Fund', type: 'programme', country: 'Nigeria', region: null, description: null },
@@ -65,6 +66,15 @@ describe('template narrative (brief §10, invariant 11)', () => {
     expect(text).toContain('Evidence gap (D3): Co-financing records not released — Lowers confidence.')
     expect(text).toContain('Recorded dissent on: D2.')
     expect(text).toContain('Power imbalance is High: Donors hold budget authority')
+  })
+})
+
+describe('export chart layout (PLAN D-44)', () => {
+  it('groups by dimension, scales each bar on its own 1–5 scale, and draws no bar for unrated', () => {
+    const { rows } = chartLayout(buildReportData(input()).domains, 400)
+    expect(rows.map((r) => r.kind)).toEqual(['dimension', 'domain', 'domain'])
+    expect(rows[1]).toMatchObject({ label: 'D1 Equity & Justice', value: 3, barWidth: 240 })
+    expect(rows[2]).toMatchObject({ value: null, barWidth: 0 })
   })
 })
 

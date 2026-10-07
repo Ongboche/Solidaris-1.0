@@ -6,6 +6,7 @@ import { Button } from '../../ui/Button'
 import { Checkbox, SelectField, TextArea, TextField } from '../../ui/Field'
 import { Alert, Card, Chip, EmptyState, Spinner } from '../../ui/Feedback'
 import { useProjectContext } from '../project/ProjectLayout'
+import { ScrollArea } from '../../ui/ScrollArea'
 
 export const EVIDENCE_TYPES = ['document', 'interview', 'fgd', 'observation', 'admin_data', 'literature', 'financial', 'media', 'other']
 export const ORIGINS = ['community', 'government', 'funder', 'implementer', 'independent']
@@ -40,7 +41,7 @@ export default function EvidencePage() {
         <h3 id="coverage" className="text-lg font-semibold">
           {t('evidence.coverage')}
         </h3>
-        <div className="overflow-x-auto rounded border border-line bg-panel">
+        <ScrollArea label={t('evidence.coverage')} className="rounded border border-line bg-panel">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-line text-muted">
               <tr>
@@ -71,7 +72,7 @@ export default function EvidencePage() {
               })}
             </tbody>
           </table>
-        </div>
+        </ScrollArea>
       </section>
 
       <section aria-labelledby="items" className="flex flex-col gap-3">

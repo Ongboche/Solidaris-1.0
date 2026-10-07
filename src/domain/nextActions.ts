@@ -15,6 +15,8 @@ export interface ProjectSnapshot {
   actorsComplete: boolean
   /** The user's own assessment status, or null if not started */
   myAssessmentStatus?: 'draft' | 'submitted' | 'reopened' | 'withdrawn' | null
+  /** Open actions owned by the user that are due within two weeks or overdue */
+  myDueActions?: number
 }
 
 export interface PendingInvitation {
@@ -34,6 +36,7 @@ export type NextAction =
   | { kind: 'add_evidence'; projectId: string; subjectName: string }
   | { kind: 'complete_assessment'; projectId: string; subjectName: string }
   | { kind: 'join_deliberation'; projectId: string; subjectName: string }
+  | { kind: 'action_due'; projectId: string; subjectName: string; count: number }
   | { kind: 'verify_gate'; projectId: string; subjectName: string; gate: Gate }
   | { kind: 'review_gate'; projectId: string; subjectName: string; gate: Gate }
 
@@ -47,8 +50,10 @@ export function nextActions(projects: ProjectSnapshot[], invitations: PendingInv
   }))
 
   for (const p of projects) {
-    if (p.status === 'closed') continue
     const base = { projectId: p.id, subjectName: p.subjectName }
+    // Action-plan reminders (T9) continue after a project closes.
+    if (p.myDueActions) actions.push({ kind: 'action_due', ...base, count: p.myDueActions })
+    if (p.status === 'closed') continue
     const isPi = p.myRoles.includes('pi')
 
     if (p.myRoles.includes('assessor') && p.myCoiDeclared === false) actions.push({ kind: 'declare_coi', ...base })

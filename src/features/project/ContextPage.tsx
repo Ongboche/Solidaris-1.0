@@ -13,6 +13,7 @@ import { SaveStatus } from '../../ui/SaveStatus'
 import { Term } from '../../ui/Term'
 import { useProjectContext } from './ProjectLayout'
 import { ACTOR_CATEGORIES, missingActorCategories } from './snapshot'
+import { ScrollArea } from '../../ui/ScrollArea'
 
 type Fields = Omit<ContextProfile, 'project_id'>
 const LEVELS: Level[] = ['low', 'medium', 'high']
@@ -99,7 +100,7 @@ export default function ContextPage() {
         {project.actors.length === 0 ? (
           <EmptyState title={t('context.noActors')}>{t('context.noActorsBody')}</EmptyState>
         ) : (
-          <div className="overflow-x-auto rounded border border-line bg-panel">
+          <ScrollArea label={t('context.actorsTitle')} className="rounded border border-line bg-panel">
             <table className="w-full text-left">
               <caption className="sr-only">{t('context.actorsTitle')}</caption>
               <thead className="border-b border-line text-sm text-muted">
@@ -131,7 +132,7 @@ export default function ContextPage() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </ScrollArea>
         )}
         {editable && (
           <Card>

@@ -25,13 +25,15 @@ export async function run<T>(promise: PromiseLike<{ data: T; error: { message: s
 const BUNDLE = `id, status, assessment_type, single_assessor, closed_reason, created_at, framework_version_id, profile_approved_at,
   subjects(*), project_members(id, user_id, role, coi_declared_at, coi_statement),
   decision_records(*), context_profiles(*), actors(*),
-  gate_reviews(gate, owner_decision, decided_at, attempt_number), assessments(assessor_id, status)`
+  gate_reviews(gate, owner_decision, decided_at, attempt_number), assessments(assessor_id, status),
+  action_items(owner_id, status, due_on)`
 
 export type Bundle = ProjectBundle & {
   framework_version_id: string
   profile_approved_at: string | null
   /** RLS returns only the user's own assessment before G3 (invariant 4). */
   assessments?: { assessor_id: string; status: 'draft' | 'submitted' | 'reopened' | 'withdrawn' }[]
+  action_items?: { owner_id: string | null; status: 'open' | 'done' | 'cancelled'; due_on: string | null }[]
 }
 
 /** One-to-one embeds may arrive as an object or a one-item array depending on the API version. */

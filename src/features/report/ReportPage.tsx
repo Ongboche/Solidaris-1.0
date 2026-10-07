@@ -13,6 +13,7 @@ import { useProjectContext } from '../project/ProjectLayout'
 import { useReportData } from '../profile/useReportData'
 import { buildNarrativeDraft, DRAFT_LABEL } from './narrative'
 import { exportDocx, exportEvidenceCsv, exportPdf, exportRatingsCsv, toReportText } from './exporters'
+import { profileChartPng } from './chartImage'
 
 /** T8 report (brief §10): sections, member-checks, the narrative draft, and exports. */
 export default function ReportPage() {
@@ -41,7 +42,10 @@ export default function ReportPage() {
       setBusy(null)
     }
   }
-  const text = () => toReportText(data, t)
+  const text = () => ({
+    ...toReportText(data, t),
+    chart: profileChartPng(data.domains, { notRated: t('common.notRated'), confidence: (l) => `${t(`level.${l}`)} ${t('profileView.confidenceShort')}` }),
+  })
   const base = data.subject.name.replace(/[^\w]+/g, '-').toLowerCase()
   const code = (id: string) => framework.data?.domains.find((d) => d.id === id)?.code ?? '?'
 

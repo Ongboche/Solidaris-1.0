@@ -36,7 +36,16 @@ export function toSnapshot(p: Bundle, userId: string): ProjectSnapshot {
     contextComplete: contextComplete(p),
     actorsComplete: missingActorCategories(p).length === 0,
     myAssessmentStatus: p.assessments?.find((a) => a.assessor_id === userId)?.status ?? null,
+    myDueActions: dueActions(p, userId),
   }
+}
+
+const TWO_WEEKS_MS = 14 * 24 * 3600 * 1000
+
+/** Open actions owned by the user, due within two weeks or overdue (action-plan reminders). */
+export function dueActions(p: Bundle, userId: string, now = new Date()): number {
+  const horizon = new Date(now.getTime() + TWO_WEEKS_MS).toISOString().slice(0, 10)
+  return (p.action_items ?? []).filter((a) => a.owner_id === userId && a.status === 'open' && a.due_on && a.due_on <= horizon).length
 }
 
 /** Gates decided go / conditional go, and whether the current gate's latest attempt was a hold. */

@@ -27,6 +27,8 @@ function target(a: NextAction): string {
       return `/projects/${a.projectId}/assessment`
     case 'join_deliberation':
       return `/projects/${a.projectId}/deliberation`
+    case 'action_due':
+      return `/projects/${a.projectId}/uptake`
   }
 }
 
@@ -47,6 +49,7 @@ export function NextActionList({ actions, emptyBody }: { actions: NextAction[]; 
             name: a.subjectName,
             gate: 'gate' in a ? a.gate : '',
             role: 'role' in a ? t(`role.${a.role}`) : '',
+            count: 'count' in a ? a.count : 0,
           }
           const key =
             a.kind === 'accept_invitation' ? a.invitationId : `${a.kind}-${a.projectId}-${'gate' in a ? a.gate : ''}`

@@ -22,6 +22,7 @@ import { Checkbox, RadioGroup, SelectField, TextArea, TextField } from '../../ui
 import { Alert, Card, Chip, EmptyState, Spinner } from '../../ui/Feedback'
 import { RatingButtons } from '../../ui/RatingButtons'
 import { useProjectContext } from '../project/ProjectLayout'
+import { ScrollArea } from '../../ui/ScrollArea'
 
 const CATEGORIES = ['full', 'substantial', 'with_reservations', 'no_consensus', 'deferred_pending_evidence']
 const NO_RATING = ['no_consensus', 'deferred_pending_evidence']
@@ -132,7 +133,7 @@ function DomainCard({
       {error && <Alert tone="error">{error}</Alert>}
 
       {showRatings && (
-        <div className="overflow-x-auto">
+        <ScrollArea label={t('deliberation.ratingsCaption', { domain: domain.name })}>
           <table className="w-full text-left text-sm">
             <caption className="sr-only">{t('deliberation.ratingsCaption', { domain: domain.name })}</caption>
             <thead className="border-b border-line text-muted">
@@ -154,7 +155,7 @@ function DomainCard({
               ))}
             </tbody>
           </table>
-        </div>
+        </ScrollArea>
       )}
 
       <div className="flex flex-col gap-2">

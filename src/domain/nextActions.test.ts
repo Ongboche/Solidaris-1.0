@@ -59,6 +59,13 @@ describe('nextActions (brief §9.2)', () => {
     expect(kinds(nextActions([project({ status: 'deliberation', myRoles: ['pi'] })], []))).toEqual(['review_gate'])
   })
 
+  it('reminds action owners of due actions, even after the project closes', () => {
+    expect(nextActions([project({ status: 'closed', myRoles: ['observer'], myDueActions: 2 })], [])[0]).toMatchObject({
+      kind: 'action_due',
+      count: 2,
+    })
+  })
+
   it('gives observers nothing to do and skips closed projects', () => {
     expect(nextActions([project({ status: 'context', myRoles: ['observer'] })], [])).toEqual([])
     expect(nextActions([project({ status: 'closed' })], [])).toEqual([])
