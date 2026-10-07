@@ -50,8 +50,9 @@ export default function ProjectLayout() {
     { to: 'team', label: t('project.tabs.team') },
     { to: 'scoping', label: t('project.tabs.scoping') },
     { to: 'context', label: t('project.tabs.context') },
-    { to: 'evidence', label: t('project.tabs.evidence') },
+    // PLAN D-52: assessment comes before the evidence review.
     { to: 'assessment', label: t('project.tabs.assessment') },
+    { to: 'evidence', label: t('project.tabs.evidence') },
     ...(passed.includes('G3')
       ? [
           { to: 'integrity', label: t('project.tabs.integrity') },

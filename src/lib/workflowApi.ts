@@ -172,7 +172,7 @@ const ASSESSMENT = `id, assessor_id, status, submitted_at, reopened_reason,
     evidence:rating_evidence_links(evidence_id), gaps:rating_gap_links(gap_id)),
   indicator_responses(indicator_id, response)`
 
-/** All assessments the user may see: their own always; others only after G3 (invariant 4). */
+/** All assessments the user may see: their own always; others only after G2 (invariant 4, PLAN D-52). */
 export function useAssessments(projectId: string) {
   return useQuery({
     queryKey: ['assessments', projectId],

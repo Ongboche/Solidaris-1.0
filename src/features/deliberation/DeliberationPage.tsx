@@ -27,7 +27,7 @@ import { ScrollArea } from '../../ui/ScrollArea'
 const CATEGORIES = ['full', 'substantial', 'with_reservations', 'no_consensus', 'deferred_pending_evidence']
 const NO_RATING = ['no_consensus', 'deferred_pending_evidence']
 
-/** T6 Deliberation & consensus (brief §6.4, §9.9). Visible only after G3 (invariant 4). */
+/** T6 Deliberation & consensus (brief §6.4, §9.9). Opens after the evidence review (G3); ratings are private until G2 (invariant 4). */
 export default function DeliberationPage() {
   const { t } = useTranslation()
   const { project, myRoles, passed, userId } = useProjectContext()

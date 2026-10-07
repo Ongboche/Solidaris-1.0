@@ -117,15 +117,14 @@ describe('G0–G1 (Phase 2 recap)', () => {
       `insert into actors (project_id, category, name) values ($1,'funder','Donor'),($1,'implementer','NGO'),($1,'community','Ward committee'),($1,'government','SMoH')`,
       [project],
     )
-    expect((await passGate(pi, 'G1'))[0]?.s).toBe('evidence')
+    expect((await passGate(pi, 'G1'))[0]?.s).toBe('assessment') // PLAN D-52: assessment comes first
   })
 })
 
-describe('T5 evidence and G2', () => {
-  it('checks evidence or gaps per domain, evidence types and community evidence for D5/D8', async () => {
-    let auto = await refresh(pi, 'G2')
-    expect(auto.find((a) => a.key === 'evidence_or_gap_all_domains')?.answer).toBe('no')
+describe('T3 assessment (G2): evidence is gathered while assessing', () => {
+  let as1: string, as2: string
 
+  it('lets assessors add evidence and gaps during the assessment stage', async () => {
     await asUser(db, a1, async (tx) => {
       const [doc] = (
         await tx.query<{ id: string }>(
@@ -134,22 +133,55 @@ describe('T5 evidence and G2', () => {
         )
       ).rows
       e1 = doc!.id
-      await tx.query(
-        `insert into evidence_domain_links (evidence_id, domain_id) select $1, id from domains where code not in ('D3')`,
-        [e1],
-      )
+      await tx.query(`insert into evidence_domain_links (evidence_id, domain_id) select $1, id from domains where code not in ('D3')`, [e1])
       await tx.query(
         `insert into evidence_gaps (project_id, domain_id, description, effect_on_confidence)
          select $1, id, 'Co-financing records not released', 'Lowers confidence' from domains where code = 'D3'`,
         [project],
       )
     })
+  })
+
+  it('requires the assessor’s own integrity review before submitting (PLAN D-7)', async () => {
+    as1 = await completeAssessment(a1, { D1: 2, D2: 3 })
+    as2 = await completeAssessment(a2, { D1: 5, D2: 4 })
+    await expect(queryAs(db, a1, `select public.submit_assessment($1)`, [as1])).rejects.toThrow(/integrity review/)
+    await assessorIntegrity(a1, as1)
+    await assessorIntegrity(a2, as2)
+    await queryAs(db, a1, `select public.submit_assessment($1)`, [as1])
+  })
+
+  it('reports outstanding assessors at G2 until everyone has submitted', async () => {
+    let auto = await refresh(pi, 'G2')
+    expect(auto.find((a) => a.key === 'all_assessors_submitted')).toMatchObject({
+      answer: 'no',
+      evidence: { submitted: 1, outstanding: 1 },
+    })
+    await queryAs(db, a2, `select public.submit_assessment($1)`, [as2])
     auto = await refresh(pi, 'G2')
+    expect(auto.every((a) => a.answer === 'yes')).toBe(true)
+  })
+
+  it('keeps divergence private (invariant 4)', async () => {
+    await expect(queryAs(db, pi, `select * from public.domain_divergence($1)`, [project])).rejects.toThrow(/permission denied/)
+  })
+
+  it('passes G2 without a reviewer step, moving to the evidence review', async () => {
+    expect((await passGate(pi, 'G2'))[0]?.s).toBe('evidence')
+  })
+})
+
+describe('T5 evidence review (G3): you cannot proceed without evidence', () => {
+  it('checks evidence or gaps per domain, evidence types and community evidence for D5/D8', async () => {
+    let auto = await refresh(pi, 'G3')
     expect(auto.find((a) => a.key === 'evidence_or_gap_all_domains')?.answer).toBe('yes')
     expect(auto.find((a) => a.key === 'min_two_evidence_types')?.answer).toBe('no')
     expect(auto.find((a) => a.key === 'community_evidence_d5_d8')?.evidence).toEqual({
       domains_without_community_evidence: ['D5', 'D8'],
     })
+    // Without enough evidence the PI cannot pass G3 without a written override.
+    await queryAs(db, reviewer, `select public.record_gate_verification($1, 'G3', 'verified', null)`, [project])
+    await expect(passGate(pi, 'G3')).rejects.toThrow(/justification/)
 
     await asUser(db, a2, async (tx) => {
       const [fgd] = (
@@ -158,11 +190,9 @@ describe('T5 evidence and G2', () => {
           [project],
         )
       ).rows
-      await tx.query(`insert into evidence_domain_links (evidence_id, domain_id) select $1, id from domains where code in ('D5','D8')`, [
-        fgd!.id,
-      ])
+      await tx.query(`insert into evidence_domain_links (evidence_id, domain_id) select $1, id from domains where code in ('D5','D8')`, [fgd!.id])
     })
-    auto = await refresh(pi, 'G2')
+    auto = await refresh(pi, 'G3')
     expect(auto.every((a) => a.answer === 'yes')).toBe(true)
   })
 
@@ -177,44 +207,10 @@ describe('T5 evidence and G2', () => {
     ).rejects.toThrow(/evidence_storage_path_in_project/)
   })
 
-  it('passes G2 after reviewer verification', async () => {
-    await queryAs(db, reviewer, `select public.record_gate_verification($1, 'G2', 'verified', null)`, [project])
-    expect((await passGate(pi, 'G2'))[0]?.s).toBe('assessment')
-  })
-})
-
-describe('T3 assessment, integrity step and G3', () => {
-  let as1: string, as2: string
-
-  it('requires the assessor’s own integrity review before submitting (PLAN D-7)', async () => {
-    as1 = await completeAssessment(a1, { D1: 2, D2: 3 })
-    as2 = await completeAssessment(a2, { D1: 5, D2: 4 })
-    await expect(queryAs(db, a1, `select public.submit_assessment($1)`, [as1])).rejects.toThrow(/integrity review/)
-    await assessorIntegrity(a1, as1)
-    await assessorIntegrity(a2, as2)
-    await queryAs(db, a1, `select public.submit_assessment($1)`, [as1])
-  })
-
-  it('reports outstanding assessors at G3 until everyone has submitted', async () => {
-    let auto = await refresh(pi, 'G3')
-    expect(auto.find((a) => a.key === 'all_assessors_submitted')).toMatchObject({
-      answer: 'no',
-      evidence: { submitted: 1, outstanding: 1 },
-    })
-    await queryAs(db, a2, `select public.submit_assessment($1)`, [as2])
-    auto = await refresh(pi, 'G3')
-    expect(auto.every((a) => a.answer === 'yes')).toBe(true)
-  })
-
-  it('keeps divergence private before G3 (invariant 4)', async () => {
-    await expect(queryAs(db, pi, `select * from public.domain_divergence($1)`, [project])).rejects.toThrow(/permission denied/)
-  })
-
-  it('passes G3', async () => {
+  it('passes G3 after reviewer verification', async () => {
     expect((await passGate(pi, 'G3'))[0]?.s).toBe('integrity')
   })
 })
-
 describe('T4 integrity and G4', () => {
   it('needs every section, all four flags, a type with evidence and a community participant', async () => {
     let auto = await refresh(reviewer, 'G4')
@@ -422,7 +418,7 @@ describe('Exploratory (single-assessor) projects', () => {
     await assessorIntegrity(solo, a, p)
     await queryAs(db, solo, `select public.submit_assessment($1)`, [a])
     await asAdmin(db, `update assessment_projects set status = 'deliberation' where id = $1`, [p])
-    await asAdmin(db, `insert into gate_reviews (project_id, gate, owner_decision, decided_at) values ($1, 'G3', 'go', now())`, [p])
+    await asAdmin(db, `insert into gate_reviews (project_id, gate, owner_decision, decided_at) values ($1, 'G2', 'go', now())`, [p])
 
     const auto = await refresh(lead, 'G5', p)
     expect(auto.find((x) => x.key === 'consensus_or_dissent_all')?.evidence).toEqual({ exploratory: true })

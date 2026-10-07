@@ -194,7 +194,7 @@ describe('invariant 3: evidence before judgement', () => {
 })
 
 describe('invariant 4: independent assessment', () => {
-  it('hides other assessors’ ratings from everyone until G3 is passed', async () => {
+  it('hides other assessors’ ratings from everyone until G2 is passed (PLAN D-52)', async () => {
     const t = await makeTeam()
     const a = await completeAll(t, t.a1)
     for (const viewer of [t.a2, t.pi, t.reviewer, t.outsider]) {
@@ -208,7 +208,7 @@ describe('invariant 4: independent assessment', () => {
     expect(progress[0]?.complete_domains).toBe(9)
     expect(Object.keys(progress[0]!)).not.toContain('rating')
 
-    await asAdmin(db, `insert into gate_reviews (project_id, gate, owner_decision, decided_at) values ($1, 'G3', 'go', now())`, [
+    await asAdmin(db, `insert into gate_reviews (project_id, gate, owner_decision, decided_at) values ($1, 'G2', 'go', now())`, [
       t.project,
     ])
     expect(await queryAs(db, t.a2, `select id from domain_ratings where assessment_id = $1`, [a])).toHaveLength(9)
@@ -254,7 +254,7 @@ describe('invariant 6: dissent is preserved', () => {
     const a = await completeAll(t, t.a1)
     await queryAs(db, t.a1, `select public.submit_assessment($1)`, [a])
     const before = await asAdmin(db, `select id, rating, narrative from domain_ratings where assessment_id = $1 order by id`, [a])
-    await asAdmin(db, `insert into gate_reviews (project_id, gate, owner_decision, decided_at) values ($1, 'G3', 'go', now())`, [t.project])
+    await asAdmin(db, `insert into gate_reviews (project_id, gate, owner_decision, decided_at) values ($1, 'G2', 'go', now())`, [t.project])
     await asAdmin(db, `update assessment_projects set status = 'deliberation' where id = $1`, [t.project])
     await queryAs(
       db,
@@ -407,9 +407,9 @@ describe('gates (brief §6, invariant 7)', () => {
     expect(p).toEqual({ status: 'closed', closed_reason: 'Escalated: human-rights concern' })
   })
 
-  it('makes G2 wait for reviewer verification (PLAN D-12)', async () => {
+  it('makes the evidence review (G3) wait for reviewer verification (PLAN D-12, D-52)', async () => {
     const t = await makeTeam('evidence')
-    // Evidence that satisfies the G2 automatic checks: all domains, two types, community origin for D5/D8.
+    // Evidence that satisfies the G3 automatic checks: all domains, two types, community origin for D5/D8.
     await asUser(db, t.a1, async (tx) => {
       for (const [type, origin, codes] of [
         ['document', 'government', ['D1', 'D2', 'D3', 'D4', 'D6', 'D7', 'D9']],
@@ -427,11 +427,11 @@ describe('gates (brief §6, invariant 7)', () => {
         ])
       }
     })
-    await answerAll(t.pi, t.project, 'G2')
-    await expect(queryAs(db, t.pi, `select public.decide_gate($1, 'G2', 'go')`, [t.project])).rejects.toThrow(/reviewer must verify/)
-    await queryAs(db, t.reviewer, `select public.record_gate_verification($1, 'G2', 'verified', null)`, [t.project])
-    const [next] = await queryAs<{ s: string }>(db, t.pi, `select public.decide_gate($1, 'G2', 'go') as s`, [t.project])
-    expect(next?.s).toBe('assessment')
+    await answerAll(t.pi, t.project, 'G3')
+    await expect(queryAs(db, t.pi, `select public.decide_gate($1, 'G3', 'go')`, [t.project])).rejects.toThrow(/reviewer must verify/)
+    await queryAs(db, t.reviewer, `select public.record_gate_verification($1, 'G3', 'verified', null)`, [t.project])
+    const [next] = await queryAs<{ s: string }>(db, t.pi, `select public.decide_gate($1, 'G3', 'go') as s`, [t.project])
+    expect(next?.s).toBe('integrity')
   })
 
   it('cannot change a decided gate review', async () => {

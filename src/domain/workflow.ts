@@ -1,11 +1,12 @@
-// Project status machine (brief §6.1). Mirrored by gate_for_status() / next_status() in SQL.
+// Project status machine (brief §6.1, as amended by PLAN D-52: assessment before the evidence
+// review). Mirrored by gate_for_status() / next_status() in SQL.
 import type { Gate, GateDecision, ProjectRole, ProjectStatus } from './types'
 
 const GATE_BY_STATUS: Partial<Record<ProjectStatus, Gate>> = {
   scoping: 'G0',
   context: 'G1',
-  evidence: 'G2',
-  assessment: 'G3',
+  assessment: 'G2',
+  evidence: 'G3',
   integrity: 'G4',
   deliberation: 'G5',
   validation: 'G6',
@@ -15,9 +16,9 @@ const GATE_BY_STATUS: Partial<Record<ProjectStatus, Gate>> = {
 
 const NEXT: Partial<Record<ProjectStatus, ProjectStatus>> = {
   scoping: 'context',
-  context: 'evidence',
-  evidence: 'assessment',
-  assessment: 'integrity',
+  context: 'assessment',
+  assessment: 'evidence',
+  evidence: 'integrity',
   integrity: 'deliberation',
   deliberation: 'validation',
   validation: 'uptake',
@@ -39,7 +40,7 @@ export function nextStatus(status: ProjectStatus, decision: GateDecision): Proje
   return next
 }
 
-/** Gate owners (brief §6.3). G2 and G6 also need a reviewer verification first (PLAN D-12). */
+/** Gate owners (brief §6.3). The evidence review (G3) and validation (G6) also need a reviewer verification first (PLAN D-12, D-52). */
 export function gateOwner(gate: Gate): ProjectRole {
   if (gate === 'G4') return 'reviewer'
   if (gate === 'G7') return 'kt_lead'
@@ -47,12 +48,12 @@ export function gateOwner(gate: Gate): ProjectRole {
 }
 
 export function needsReviewerVerification(gate: Gate): boolean {
-  return gate === 'G2' || gate === 'G6'
+  return gate === 'G3' || gate === 'G6'
 }
 
 /** Gates already behind a project, for the journey bar. */
 export function passedGates(status: ProjectStatus): Gate[] {
-  const order: ProjectStatus[] = ['scoping', 'context', 'evidence', 'assessment', 'integrity', 'deliberation', 'validation', 'uptake', 'learning']
+  const order: ProjectStatus[] = ['scoping', 'context', 'assessment', 'evidence', 'integrity', 'deliberation', 'validation', 'uptake', 'learning']
   const index = order.indexOf(status)
   if (status === 'closed') return []
   return order.slice(0, Math.max(index, 0)).map((s) => GATE_BY_STATUS[s]!)

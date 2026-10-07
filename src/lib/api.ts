@@ -31,7 +31,7 @@ const BUNDLE = `id, status, assessment_type, single_assessor, closed_reason, cre
 export type Bundle = ProjectBundle & {
   framework_version_id: string
   profile_approved_at: string | null
-  /** RLS returns only the user's own assessment before G3 (invariant 4). */
+  /** RLS returns only the user's own assessment before G2 (invariant 4, PLAN D-52). */
   assessments?: { assessor_id: string; status: 'draft' | 'submitted' | 'reopened' | 'withdrawn' }[]
   action_items?: { owner_id: string | null; status: 'open' | 'done' | 'cancelled'; due_on: string | null }[]
 }

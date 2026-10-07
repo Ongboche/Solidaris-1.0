@@ -51,7 +51,10 @@ describe('workflow (brief §6.1)', () => {
 
   it('advances on go and conditional go, holds in place, and closes on stop', () => {
     expect(nextStatus('scoping', 'go')).toBe('context')
-    expect(nextStatus('assessment', 'conditional_go')).toBe('integrity')
+    // PLAN D-52: assessment (G2) comes before the evidence review (G3)
+    expect(nextStatus('context', 'go')).toBe('assessment')
+    expect(nextStatus('assessment', 'conditional_go')).toBe('evidence')
+    expect(nextStatus('evidence', 'go')).toBe('integrity')
     expect(nextStatus('evidence', 'hold')).toBe('evidence')
     expect(nextStatus('deliberation', 'stop_redirect')).toBe('closed')
     expect(nextStatus('learning', 'go')).toBe('closed')
@@ -62,13 +65,15 @@ describe('workflow (brief §6.1)', () => {
     expect(gateOwner('G4')).toBe('reviewer')
     expect(gateOwner('G7')).toBe('kt_lead')
     expect(gateOwner('G3')).toBe('pi')
-    expect(needsReviewerVerification('G2')).toBe(true)
-    expect(needsReviewerVerification('G3')).toBe(false)
+    expect(needsReviewerVerification('G3')).toBe(true)
+    expect(needsReviewerVerification('G6')).toBe(true)
+    expect(needsReviewerVerification('G2')).toBe(false)
   })
 
   it('lists passed gates for the journey bar', () => {
     expect(passedGates('scoping')).toEqual([])
-    expect(passedGates('assessment')).toEqual(['G0', 'G1', 'G2'])
+    expect(passedGates('assessment')).toEqual(['G0', 'G1'])
+    expect(passedGates('evidence')).toEqual(['G0', 'G1', 'G2'])
   })
 })
 
