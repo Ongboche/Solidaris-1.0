@@ -60,7 +60,9 @@ export default function AssessmentPage() {
             </div>
           </Card>
         ) : (
-          <EmptyState title={t('assessment.notOpen')}>{t('assessment.notOpenBody')}</EmptyState>
+          <EmptyState title={t('assessment.notOpen')}>
+            {t('assessment.notOpenStage', { stage: t(`status.${project.status}`) })}
+          </EmptyState>
         )
       )}
       {mine && framework.data && <Workspace assessment={mine} framework={framework.data} />}

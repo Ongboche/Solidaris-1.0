@@ -8,6 +8,7 @@ import { Alert, Chip, Spinner } from '../../ui/Feedback'
 import { JourneyBar } from '../../ui/JourneyBar'
 import { gateProgress } from './snapshot'
 import { flags } from '../../lib/flags'
+import { StageBanner } from './StageBanner'
 
 export interface ProjectContextValue {
   project: Bundle
@@ -86,7 +87,8 @@ export default function ProjectLayout() {
             {t('home.yourRoles', { roles: myRoles.map((r) => t(`role.${r}`)).join(', ') || t('project.noRole') })}
           </span>
         </div>
-        {project.status !== 'draft' && <JourneyBar current={currentGate} passed={passed} onHold={onHold} linkTo={(g) => `gates/${g}`} />}
+        <JourneyBar current={currentGate} passed={passed} onHold={onHold} linkTo={(g) => `gates/${g}`} />
+        <StageBanner ctx={ctx} />
         {project.status === 'closed' && (
           <Alert title={t('project.closedTitle')}>{project.closed_reason}</Alert>
         )}

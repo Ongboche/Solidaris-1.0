@@ -611,6 +611,7 @@
     "start": "Start my assessment",
     "notOpen": "Assessment is not open yet",
     "notOpenBody": "Assessments open when the project reaches the assessment stage (after G2).",
+    "notOpenStage": "This project is at the \"{{stage}}\" stage. Assessments open once gates G0, G1 and G2 have been decided — see the banner above for the next step. You can already add evidence in the Evidence tab.",
     "notAssessor": "You are not an assessor on this project.",
     "checklist": "Assessment steps",
     "submittedOn": "Submitted on {{date}}. It is locked.",
@@ -815,6 +816,15 @@
     "approveNarrative": "Approve narrative",
     "narrativeApproved": "Narrative approved by the PI.",
     "narrativeDraftWarning": "The narrative is still a draft and has not been approved."
+  },
+  "stage": {
+    "draftTitle": "This project is still being set up",
+    "draftBody": "Filling in forms does not move a project forward — only gate decisions do. When your team is invited, the PI starts scoping; the project then moves through gates G0 to G8, one decision at a time.",
+    "waitingForPi": "Waiting for the PI to start scoping.",
+    "currentTitle": "Current stage: {{stage}}",
+    "howToMove": "The project moves on when the {{owner}} records a decision at gate {{gate}}.",
+    "needsReviewer": "A reviewer must verify this gate first, so make sure the team has a reviewer.",
+    "waitingFor": "Nothing for you to do here right now — waiting for the {{owner}} to decide gate {{gate}}."
   },
   "uptake": {
     "title": "Knowledge translation and uptake",
