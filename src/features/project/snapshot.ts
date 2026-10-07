@@ -35,6 +35,7 @@ export function toSnapshot(p: Bundle, userId: string): ProjectSnapshot {
     decisionComplete: decisionComplete(p),
     contextComplete: contextComplete(p),
     actorsComplete: missingActorCategories(p).length === 0,
+    myAssessmentStatus: p.assessments?.find((a) => a.assessor_id === userId)?.status ?? null,
   }
 }
 

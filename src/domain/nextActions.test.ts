@@ -45,6 +45,20 @@ describe('nextActions (brief §9.2)', () => {
     expect(kinds(a)).toEqual(['declare_coi'])
   })
 
+  it('guides assessors through evidence and their own assessment until submitted', () => {
+    expect(kinds(nextActions([project({ status: 'evidence', myRoles: ['assessor'], myCoiDeclared: true })], []))).toEqual(['add_evidence'])
+    const at = (s: ProjectSnapshot['myAssessmentStatus']) =>
+      kinds(nextActions([project({ status: 'assessment', myRoles: ['assessor'], myCoiDeclared: true, myAssessmentStatus: s })], []))
+    expect(at(null)).toEqual(['complete_assessment'])
+    expect(at('reopened')).toEqual(['complete_assessment'])
+    expect(at('submitted')).toEqual([])
+  })
+
+  it('invites deliberation roles to join, and gives the PI the gate instead', () => {
+    expect(kinds(nextActions([project({ status: 'deliberation', myRoles: ['community_participant'] })], []))).toEqual(['join_deliberation'])
+    expect(kinds(nextActions([project({ status: 'deliberation', myRoles: ['pi'] })], []))).toEqual(['review_gate'])
+  })
+
   it('gives observers nothing to do and skips closed projects', () => {
     expect(nextActions([project({ status: 'context', myRoles: ['observer'] })], [])).toEqual([])
     expect(nextActions([project({ status: 'closed' })], [])).toEqual([])

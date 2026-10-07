@@ -13,6 +13,8 @@ export interface ProjectSnapshot {
   decisionComplete: boolean
   contextComplete: boolean
   actorsComplete: boolean
+  /** The user's own assessment status, or null if not started */
+  myAssessmentStatus?: 'draft' | 'submitted' | 'reopened' | 'withdrawn' | null
 }
 
 export interface PendingInvitation {
@@ -29,6 +31,9 @@ export type NextAction =
   | { kind: 'record_decision'; projectId: string; subjectName: string }
   | { kind: 'complete_context'; projectId: string; subjectName: string }
   | { kind: 'declare_coi'; projectId: string; subjectName: string }
+  | { kind: 'add_evidence'; projectId: string; subjectName: string }
+  | { kind: 'complete_assessment'; projectId: string; subjectName: string }
+  | { kind: 'join_deliberation'; projectId: string; subjectName: string }
   | { kind: 'verify_gate'; projectId: string; subjectName: string; gate: Gate }
   | { kind: 'review_gate'; projectId: string; subjectName: string; gate: Gate }
 
@@ -47,6 +52,15 @@ export function nextActions(projects: ProjectSnapshot[], invitations: PendingInv
     const isPi = p.myRoles.includes('pi')
 
     if (p.myRoles.includes('assessor') && p.myCoiDeclared === false) actions.push({ kind: 'declare_coi', ...base })
+    if (p.myRoles.includes('assessor')) {
+      if (p.status === 'evidence') actions.push({ kind: 'add_evidence', ...base })
+      const s = p.myAssessmentStatus ?? null
+      if (p.status === 'assessment' && (s === null || s === 'draft' || s === 'reopened'))
+        actions.push({ kind: 'complete_assessment', ...base })
+    }
+    if (p.status === 'deliberation' && !p.myRoles.includes('pi') &&
+        p.myRoles.some((r) => ['assessor', 'reviewer', 'external_expert', 'community_participant'].includes(r)))
+      actions.push({ kind: 'join_deliberation', ...base })
 
     if (p.status === 'draft') {
       if (isPi) actions.push({ kind: 'invite_team', ...base }, { kind: 'start_scoping', ...base })

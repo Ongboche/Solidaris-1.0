@@ -21,6 +21,12 @@ function target(a: NextAction): string {
       return `/projects/${a.projectId}/gates/${a.gate}`
     case 'accept_invitation':
       return `/projects/${a.projectId}`
+    case 'add_evidence':
+      return `/projects/${a.projectId}/evidence`
+    case 'complete_assessment':
+      return `/projects/${a.projectId}/assessment`
+    case 'join_deliberation':
+      return `/projects/${a.projectId}/deliberation`
   }
 }
 

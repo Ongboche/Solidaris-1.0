@@ -48,6 +48,20 @@ export default function ProjectLayout() {
     { to: 'team', label: t('project.tabs.team') },
     { to: 'scoping', label: t('project.tabs.scoping') },
     { to: 'context', label: t('project.tabs.context') },
+    { to: 'evidence', label: t('project.tabs.evidence') },
+    { to: 'assessment', label: t('project.tabs.assessment') },
+    ...(passed.includes('G3')
+      ? [
+          { to: 'integrity', label: t('project.tabs.integrity') },
+          { to: 'deliberation', label: t('project.tabs.deliberation') },
+        ]
+      : []),
+    ...(project.profile_approved_at
+      ? [
+          { to: 'profile', label: t('project.tabs.profile') },
+          { to: 'report', label: t('project.tabs.report') },
+        ]
+      : []),
     ...(currentGate ? [{ to: `gates/${currentGate}`, label: t('project.tabs.gate', { gate: currentGate }) }] : []),
   ]
 
