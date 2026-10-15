@@ -84,7 +84,18 @@ const rpc: Record<string, unknown> = {
     op3: { median_days_g0_to_g6: null, first_pass: { G0: { reviewed: 1, passed_first_time: 1 } }, recent_hold_reasons: [] } },
 }
 
-export async function mockSignedIn(page: Page) {
+/** PLAN D-53: the same project served as the read-only demo, with one persona per role. */
+const demoMembers = (['pi', 'assessor', 'reviewer', 'community_participant', 'kt_lead', 'observer'] as const).map((role, i) => ({
+  id: `dm${i}`, user_id: `de300000-0000-4000-8000-00000000000${i + 1}`, role, coi_declared_at: null, coi_statement: null,
+}))
+
+export async function mockSignedIn(page: Page, { demo = false } = {}) {
+  const projects = demo
+    ? [{ ...bundle, is_demo: true, status: 'closed', closed_reason: 'Demo cycle complete.', project_members: demoMembers }]
+    : [bundle]
+  const members = demo
+    ? demoMembers.map((m) => ({ user_id: m.user_id, full_name: `Demo ${m.role}`, institution: 'Demo team', role: m.role }))
+    : rpc.project_member_profiles
   const session = {
     access_token: 'e2e', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600, refresh_token: 'e2e',
     user: { id: USER, email: 'paul@example.org', aud: 'authenticated', role: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-01T00:00:00Z' },
@@ -94,7 +105,9 @@ export async function mockSignedIn(page: Page) {
     const url = new URL(route.request().url())
     const [, , kind, name] = url.pathname.split('/') // /rest/v1/<table> or /rest/v1/rpc/<fn>
     let body: unknown = []
-    if (url.pathname.startsWith('/rest/v1/rpc/')) body = rpc[url.pathname.split('/').pop()!] ?? null
+    const fn = url.pathname.split('/').pop()!
+    if (url.pathname.startsWith('/rest/v1/rpc/')) body = fn === 'project_member_profiles' ? members : (rpc[fn] ?? null)
+    else if (kind === 'v1' && name === 'assessment_projects') body = projects
     else if (kind === 'v1' && name) body = fixtures[name] ?? []
     else if (url.pathname.startsWith('/auth/v1/user')) body = session.user
     const single = (route.request().headers()['accept'] ?? '').includes('vnd.pgrst.object')

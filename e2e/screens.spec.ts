@@ -68,3 +68,24 @@ test.describe('signed-in screens (mocked backend)', () => {
     await expectAccessible(page)
   })
 })
+
+test.describe('demo profile (PLAN D-53)', () => {
+  test('is read-only and shows each role only its own tabs', async ({ page }) => {
+    const { projectId } = await mockSignedIn(page, { demo: true })
+    await page.goto('/')
+    await expect(page.getByRole('heading', { name: 'Demo profile: explore a finished assessment' })).toBeVisible()
+    await page.getByRole('link', { name: 'Kaduna Equity Fund' }).click()
+    await expect(page.getByText('Demo profile — read-only')).toBeVisible()
+    const tabs = page.getByRole('navigation', { name: 'Project sections' }).getByRole('link')
+    await expect(tabs.first()).toHaveText('Overview')
+    await expect(tabs.filter({ hasText: 'Scoping' })).toHaveCount(1)
+    await expectAccessible(page)
+
+    await page.getByLabel('View as').selectOption({ label: 'Observer — Demo observer' })
+    await expect(page).toHaveURL(new RegExp(`/projects/${projectId}$`))
+    await expect(tabs).toHaveText(['Overview', 'Profile', 'Report'])
+    await page.getByLabel('View as').selectOption({ label: 'Community participant — Demo community_participant' })
+    await expect(tabs).toHaveText(['Overview', 'Team', 'Deliberation', 'Profile', 'Report'])
+    await expectAccessible(page)
+  })
+})

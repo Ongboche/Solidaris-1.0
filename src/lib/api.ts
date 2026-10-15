@@ -22,7 +22,7 @@ export async function run<T>(promise: PromiseLike<{ data: T; error: { message: s
   return data
 }
 
-const BUNDLE = `id, status, assessment_type, single_assessor, closed_reason, created_at, framework_version_id, profile_approved_at,
+const BUNDLE = `id, status, assessment_type, single_assessor, closed_reason, created_at, framework_version_id, profile_approved_at, is_demo,
   subjects(*), project_members(id, user_id, role, coi_declared_at, coi_statement),
   decision_records(*), context_profiles(*), actors(*),
   gate_reviews(gate, owner_decision, decided_at, attempt_number), assessments(assessor_id, status),
@@ -31,6 +31,8 @@ const BUNDLE = `id, status, assessment_type, single_assessor, closed_reason, cre
 export type Bundle = ProjectBundle & {
   framework_version_id: string
   profile_approved_at: string | null
+  /** Read-only demo profile (PLAN D-53). */
+  is_demo?: boolean
   /** RLS returns only the user's own assessment before G2 (invariant 4, PLAN D-52). */
   assessments?: { assessor_id: string; status: 'draft' | 'submitted' | 'reopened' | 'withdrawn' }[]
   action_items?: { owner_id: string | null; status: 'open' | 'done' | 'cancelled'; due_on: string | null }[]

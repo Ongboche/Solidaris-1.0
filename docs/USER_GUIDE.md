@@ -20,6 +20,10 @@ Site: https://ongboche.github.io/Solidaris-1.0/
 
 **Saving:** you never need a Save button. Text saves as you type ("Saved · 3 seconds ago"). If your connection drops, SOLIDARIS keeps your text on your device and retries.
 
+**Demo profile:** your home page has a read-only demo, **PEPFAR project in Africa**. It is a finished assessment built from real, cited public sources. The team, meetings and ratings are fictional.
+- Choose a role under **View as** to see the tabs and steps that role works with.
+- Nothing in the demo can be changed.
+
 ## 2. Roles
 
 | Role | What you do |

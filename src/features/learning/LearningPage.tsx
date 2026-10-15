@@ -94,7 +94,7 @@ export default function LearningPage() {
         )}
       </Card>
 
-      {isPi && project.status === 'closed' && passed.includes('G8') && decidedReassess && !decidedReassess.next_project_id && (
+      {isPi && !project.is_demo && project.status === 'closed' && passed.includes('G8') && decidedReassess && !decidedReassess.next_project_id && (
         <Card className="flex flex-col gap-3">
           <h3 className="text-lg font-semibold">{t('learning.startTitle')}</h3>
           <p>{t('learning.startBody')}</p>
