@@ -1,4 +1,5 @@
-import { NavLink, Outlet, useOutletContext, useParams } from 'react-router-dom'
+import { useState } from 'react'
+import { NavLink, Outlet, useNavigate, useOutletContext, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../app/auth'
 import { useProject, type Bundle } from '../../lib/api'
@@ -9,6 +10,7 @@ import { JourneyBar } from '../../ui/JourneyBar'
 import { gateProgress } from './snapshot'
 import { flags } from '../../lib/flags'
 import { StageBanner } from './StageBanner'
+import { DEMO_TABS, DemoBanner } from './demo'
 
 export interface ProjectContextValue {
   project: Bundle
@@ -29,6 +31,8 @@ export default function ProjectLayout() {
   const { projectId } = useParams()
   const { session } = useAuth()
   const query = useProject(projectId!)
+  const navigate = useNavigate()
+  const [viewAs, setViewAs] = useState<string | null>(null)
 
   if (query.isLoading) return <Spinner label={t('common.loading')} />
   if (query.error || !query.data)
@@ -39,13 +43,15 @@ export default function ProjectLayout() {
     )
 
   const project = query.data
-  const userId = session!.user.id
+  // PLAN D-53: on the read-only demo the reader sees the project as one demo persona at a time.
+  const demoPi = project.project_members.find((m) => m.role === 'pi')?.user_id
+  const userId = project.is_demo ? (viewAs ?? demoPi ?? session!.user.id) : session!.user.id
   const myRoles = project.project_members.filter((m) => m.user_id === userId).map((m) => m.role)
   const currentGate = gateForStatus(project.status)
   const { passed, onHold } = gateProgress(project, currentGate)
   const ctx: ProjectContextValue = { project, userId, myRoles, isPi: myRoles.includes('pi'), currentGate, passed, onHold }
 
-  const tabs = [
+  const allTabs = [
     { to: '.', label: t('project.tabs.overview'), end: true },
     { to: 'team', label: t('project.tabs.team') },
     { to: 'scoping', label: t('project.tabs.scoping') },
@@ -71,6 +77,7 @@ export default function ProjectLayout() {
     ...(flags.learning && passed.includes('G7') ? [{ to: 'learning', label: t('project.tabs.learning') }] : []),
     ...(currentGate ? [{ to: `gates/${currentGate}`, label: t('project.tabs.gate', { gate: currentGate }) }] : []),
   ]
+  const tabs = project.is_demo ? allTabs.filter((tab) => myRoles.some((r) => DEMO_TABS[r].includes(tab.to))) : allTabs
 
   return (
     <div className="flex flex-col gap-6">
@@ -84,10 +91,21 @@ export default function ProjectLayout() {
           <Chip>{t(`status.${project.status}`)}</Chip>
           {onHold && <Chip tone="alert">{t('journey.onHold')}</Chip>}
           {project.single_assessor && <Chip>{t('team.exploratory')}</Chip>}
+          {project.is_demo && <Chip tone="alert">{t('demo.label')}</Chip>}
           <span className="text-sm text-muted">
-            {t('home.yourRoles', { roles: myRoles.map((r) => t(`role.${r}`)).join(', ') || t('project.noRole') })}
+            {t(project.is_demo ? 'demo.viewingAs' : 'home.yourRoles', { roles: myRoles.map((r) => t(`role.${r}`)).join(', ') || t('project.noRole') })}
           </span>
         </div>
+        {project.is_demo && (
+          <DemoBanner
+            project={project}
+            viewAs={userId}
+            onChange={(id) => {
+              setViewAs(id)
+              navigate(`/projects/${project.id}`)
+            }}
+          />
+        )}
         <JourneyBar current={currentGate} passed={passed} onHold={onHold} linkTo={(g) => `gates/${g}`} />
         <StageBanner ctx={ctx} />
         {project.status === 'closed' && (

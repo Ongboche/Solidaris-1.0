@@ -16,6 +16,7 @@ interface UserRow {
   institution_name: string | null
   platform_role: 'platform_admin' | 'institution_admin' | 'member'
   created_at: string
+  is_demo: boolean
 }
 
 const ROLES = ['member', 'institution_admin', 'platform_admin'] as const
@@ -28,7 +29,7 @@ export default function UsersPage() {
   const isPlatform = profile?.platform_role === 'platform_admin'
   const users = useQuery({
     queryKey: ['admin-users'],
-    queryFn: async () => (await run(supabase.from('profiles').select('id, full_name, email, institution_id, institution_name, platform_role, created_at').order('created_at', { ascending: false }))) as UserRow[],
+    queryFn: async () => (await run(supabase.from('profiles').select('id, full_name, email, institution_id, institution_name, platform_role, created_at, is_demo').order('created_at', { ascending: false }))) as UserRow[],
   })
   const institutions = useQuery({
     queryKey: ['institutions'],
@@ -67,9 +68,12 @@ export default function UsersPage() {
                   <span className="font-medium">{u.full_name ?? t('team.unnamed')}</span> <span className="text-muted">{u.email}</span>
                   {u.institution_name && <span className="block text-sm text-muted">{t('admin.selfReported')}: {u.institution_name}</span>}
                 </span>
-                <Chip>{t(`admin.role.${u.platform_role}`)}</Chip>
+                <span className="flex gap-2">
+                  {u.is_demo && <Chip>{t('demo.persona')}</Chip>}
+                  <Chip>{t(`admin.role.${u.platform_role}`)}</Chip>
+                </span>
               </div>
-              {isPlatform && (
+              {isPlatform && !u.is_demo && (
                 <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
                   <SelectField label={t('admin.platformRole')} value={e.role} onChange={(ev) => setEdits({ ...edits, [u.id]: { ...e, role: ev.target.value } })} options={ROLES.map((r) => ({ value: r, label: t(`admin.role.${r}`) }))} />
                   <SelectField label={t('me.institution')} value={e.institution} placeholder={t('admin.noInstitution')} onChange={(ev) => setEdits({ ...edits, [u.id]: { ...e, institution: ev.target.value } })} options={(institutions.data ?? []).map((i) => ({ value: i.id, label: i.name }))} />

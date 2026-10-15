@@ -22,9 +22,10 @@ export default function HomePage() {
   const userId = session!.user.id
 
   const mine = useMemo(
-    () => (projects.data ?? []).filter((p) => p.project_members.some((m) => m.user_id === userId)),
+    () => (projects.data ?? []).filter((p) => !p.is_demo && p.project_members.some((m) => m.user_id === userId)),
     [projects.data, userId],
   )
+  const demos = useMemo(() => (projects.data ?? []).filter((p) => p.is_demo), [projects.data])
   const actions = useMemo(
     () =>
       nextActions(
@@ -108,6 +109,30 @@ export default function HomePage() {
           </ul>
         )}
       </section>
+
+      {demos.length > 0 && (
+        <section aria-labelledby="demo-title" className="flex flex-col gap-3">
+          <h2 id="demo-title" className="text-xl font-semibold">
+            {t('demo.homeTitle')}
+          </h2>
+          <ul className="grid gap-4 md:grid-cols-2">
+            {demos.map((p) => (
+              <li key={p.id}>
+                <Card className="flex h-full flex-col gap-2">
+                  <Link to={`/projects/${p.id}`} className="text-lg font-semibold text-primary underline-offset-4 hover:underline">
+                    {p.subjects.name}
+                  </Link>
+                  <div className="flex flex-wrap gap-2">
+                    <Chip tone="alert">{t('demo.label')}</Chip>
+                    <Chip>{t(`status.${p.status}`)}</Chip>
+                  </div>
+                  <p className="text-sm text-muted">{t('demo.homeBody')}</p>
+                </Card>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   )
 }

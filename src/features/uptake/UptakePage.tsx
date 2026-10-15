@@ -93,7 +93,7 @@ export default function UptakePage() {
                   <Chip tone={a.status === 'open' && a.due_on && a.due_on < new Date().toISOString().slice(0, 10) ? 'alert' : 'neutral'}>
                     {t(`uptake.status.${a.status}`)}
                   </Chip>
-                  {(canEdit || a.owner_id === userId) && a.status === 'open' && (
+                  {(canEdit || a.owner_id === userId) && !project.is_demo && a.status === 'open' && (
                     <>
                       <Button variant="ghost" onClick={() => act(() => run(supabase.from('action_items').update({ status: 'done' }).eq('id', a.id)))}>{t('uptake.markDone')}</Button>
                       {canEdit && <Button variant="ghost" onClick={() => act(() => run(supabase.from('action_items').update({ status: 'cancelled' }).eq('id', a.id)))}>{t('uptake.cancel')}</Button>}

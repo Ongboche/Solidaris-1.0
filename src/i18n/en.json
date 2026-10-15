@@ -104,6 +104,17 @@
     "accept": "Accept and continue",
     "draftNote": "This notice is awaiting legal review before public launch."
   },
+  "demo": {
+    "label": "Demo profile",
+    "persona": "Demo persona",
+    "homeTitle": "Demo profile: explore a finished assessment",
+    "homeBody": "A complete, read-only SOLIDARIS cycle (G0–G8) built from public sources. Open it and choose a role to see what that role does. The team, meetings and ratings are fictional.",
+    "bannerTitle": "Demo profile — read-only",
+    "bannerBody": "An illustrative assessment built from real, cited public sources for training. The team, meetings, ratings and stakeholder responses are fictional. It is not an official evaluation of PEPFAR, and nothing here can be changed.",
+    "viewAs": "View as",
+    "viewAsHint": "Choose a role to see the tabs and steps that role works with.",
+    "viewingAs": "Viewing as: {{roles}}"
+  },
   "home": {
     "greeting": "Welcome, {{name}}",
     "greetingNoName": "Welcome",
